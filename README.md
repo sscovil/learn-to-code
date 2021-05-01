@@ -158,8 +158,8 @@ services:
 ```
 
 This is a [Docker Compose] configuration file that uses a format called [YAML] and describes a [virtual machine] we
-will create. This VM uses an image called [postgres:12.2-alpine] which is essentially a snapshot of an [Alpine Linux]
-operating system that has [PostgreSQL] v12.2 already installed on it.
+want to create. Our VM will use an image called [postgres:12.2-alpine] which is essentially a snapshot of an
+[Alpine Linux] operating system with [PostgreSQL] v12.2 already installed on it for us.
 
 Next, open the [Integrated Terminal (VSCode)] or [Terminal Emulator (WebStorm)] and start up you virtual PostgreSQL
 server by running the following command:
@@ -168,18 +168,53 @@ server by running the following command:
 docker-compose up -d
 ```
 
-The command [docker-compose up] brings up all the services defined in `docker-compose.yml` and the `-d` flag
-causes these services to run in 'detached mode', which just means they run in the background. If you omit that flag it
-will still run, but you will not be able to use your terminal to run any other commands and closing the terminal will
-stop the docker containers.
+The [docker-compose up] command brings up all the services defined in `docker-compose.yml` and the `-d` flag causes
+these services to run in 'detached mode', which just means they run in the background. If you omit the `-d` it will 
+still run, but you will not be able to use your terminal to run any other commands and closing the terminal will stop
+the docker containers.
 
-The first time you run [docker-compose up] it will download the [postgres:12.2-alpine] image file, which may take a few
-minutes. Once it has finished, your database server will be up and running and listening on port 5432. However, you do
-not yet have a convenient way to connect to it. We will address that in the next section...
+The first time you run [docker-compose up] it will download a [postgres:12.2-alpine] image file, which may take a few
+minutes. Once it has finished, your database server will be up and running and listening on port `5432`. You can
+confirm this by running the following command in the terminal:
+
+```shell
+docker-compose ps
+```
+
+...and you should see:
+
+```shell
+          Name                        Command                 State               Ports         
+------------------------------------------------------------------------------------------------
+learn-to-code_database_1   docker-entrypoint.sh postgres   Up (healthy)   0.0.0.0:5432->5432/tcp
+```
+
+If after running `docker-compose up -d` you encounter an error like this:
+
+```shell
+ERROR: for learn-to-code_database_1  Cannot start service database: driver failed programming external connectivity on
+endpoint learn-to-code_database_1 (...): Bind for 0.0.0.0:5432 failed: port is already allocated
+```
+
+...it means you already have a program running on your computer (maybe another instance of PostgreSQL) that is using
+port `5432`. In this case, you can either shut down the other program (if you know how and if it is safe to do so), or
+you can modify the [docker-compose ports config] in your `docker-compose.yml` file:
+
+```yaml
+    ports:
+      - "9999:5432"
+```
+
+In this case, you are telling your computer (referred to as the 'host') to listen on port `9999` and forward requests
+that port receives to the virtual database server (referred to as the 'container'), which is listening on its virtual
+port `5432` (the default port used by [PostgreSQL]).
+
+Now that you have your virtual database server up and running, you may be wondering how to use it. You do not yet have
+a convenient way to connect to it, but we will address that in the next section...
 
 ## Run [PGWeb], a web-based [PostgreSQL] browser, in a [virtual machine] using [Docker Compose]
 
-TODO
+
 
 ## Create a database table in [PostgreSQL] using [SQL]
 
@@ -264,6 +299,7 @@ TODO
 [Docker]: https://www.docker.com/get-started
 [docker-compose]: https://docs.docker.com/compose/reference/
 [docker-compose up]: https://docs.docker.com/compose/reference/up/
+[docker-compose ports config]: https://docs.docker.com/compose/compose-file/compose-file-v3/#ports
 [Docker Compose]: https://docs.docker.com/compose/
 [Docker Desktop]: https://www.docker.com/products/docker-desktop
 [fs.readFile]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#fs_fs_readfile_path_options_callback
