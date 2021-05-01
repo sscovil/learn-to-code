@@ -70,29 +70,51 @@ drill down to whatever level of detail you like on any given topic.
 
 ## 1. Fork and clone this repository using [Git]
 
-[Git] is a Version Control System (VCS) that is widely used by software developers. [GitHub] is a popular web service
+[Git] is a Version Control System ([VCS]) that is widely used by software developers. [GitHub] is a popular web service
 that provides hosting for public and private [Git] repositories (or "repos"). You can use [Git] without using [GitHub]
-(there are other options like [GitLab] or [BitBucket]), but this repo is hosted on [GitHub] and they provide some
-excellent documentation for [setting up Git].
+(there are other options like [GitLab] or [BitBucket]), but this repo is hosted on [GitHub] so for simplicity it will
+be assumed that you are also using [GitHub].
 
-Follow that guide to set up [Git] on your computer, then [fork this repo] to make yourself a copy. Finally,
-[clone your repo] to make a copy on your computer.
+Follow this guide to [setting up Git] on your computer (if necessary), then [fork this repo] to make yourself a copy.
+
+Finally, [clone your repo] to make a copy on your computer.
 
 In the end, there will be three copies of this repo that concern you:
 
-* `upstream` is the original copy of this repo, hosted at  
-* `origin` is your forked copy of this repo, hosted at 
-* `local` is your cloned copy of this repo, on your computer
+* `upstream` is the original copy of this repo, hosted at `https://github.com/sscovil/learn-to-code`
+* `origin` is your forked copy of this repo, hosted at `https://github.com/your-username/learn-to-code`
+* `local` is your cloned copy of this repo, which lives on your computer
+
+The key to understand here is that you have two copies of the original repo and, whenever any of these three copies
+(your two copies plus the original) changes, you need to update the others to keep them all in sync.
+
+If the original `upstream` copy changes after you have forked it, you can [git pull] those changes into your `local`
+copy, then [git push] them to your `origin` copy.
+
+If you make a change to your `local` copy, you need to [git add] the changes (which just marks them as 'staged' or
+ready to commit), then [git commit] those changes (which actually updates the version history), then finally [git push]
+those changes up to your `origin` copy to keep it in sync with your `local` copy.
+
+From there, you can create a [pull request] to the original `upstream` copy and, if the owner or maintainer of that
+repo approves, they will [git merge] your changes (or grant you permission to do so) and, at that point, all three
+copies will be up to date.
+
+There are a ton of resources and tutorials online that explain [Git] in depth. Before going any further, take the time
+to wrap your head around how this tool works. It is a critical concept that you need to understand. Learning it later,
+while you are trying to learn how to develop software, will make the whole process more stressful.
 
 ## 2. Install [Docker Desktop] for Windows or Mac
 
-Before you get started, you will need to install Docker on your computer. Docker is a tool that enables developers to
-run a [virtual machine] (or several VMs) on their computer. This is useful because many people have Windows or MacOS as
-an operating system on their computer, but the code they write is often deployed to a server running some flavor of
+Before you get started, you will need to install [Docker] on your computer. [Docker] is a tool that enables developers
+to run a [virtual machine] (or several VMs) on their computer. This is useful because many people have Windows or MacOS
+as an operating system on their computer, but the code they write is often deployed to a server running some flavor of
 Linux. Docker enables us to run our software in a local development environment that is identical to production.
 
 * [Install Docker Desktop (MacOS)]
 * [Install Docker Desktop (Windows)]
+
+There is a lot to learn about [Docker], but we are only going to cover what you need to know as a software developer to
+be productive with it in your local development environment. Feel free to dive deeper if it interests you.
 
 ## 3. Install an [IDE] such as [Visual Studio Code] or [WebStorm]
 
@@ -252,6 +274,11 @@ TODO
 [fs.readFile]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#fs_fs_readfile_path_options_callback
 [fork this repo]: https://docs.github.com/en/github/getting-started-with-github/fork-a-repo
 [Git]: https://git-scm.com/
+[git add]: https://git-scm.com/docs/git-add
+[git commit]: https://git-scm.com/docs/git-commit
+[git merge]: https://git-scm.com/docs/git-merge
+[git pull]: https://git-scm.com/docs/git-pull
+[git push]: https://git-scm.com/docs/git-push
 [GitHub]: https://docs.github.com/en/github/getting-started-with-github/quickstart
 [GitLab]: https://about.gitlab.com/
 [hash]: https://en.wikipedia.org/wiki/Cryptographic_hash_function
@@ -274,6 +301,7 @@ TODO
 [node-postgres]: https://node-postgres.com/
 [NPM]: https://www.npmjs.com/get-npm
 [NVM]: https://github.com/nvm-sh/nvm
+[pull request]: https://git-scm.com/docs/git-request-pull
 [React]: https://reactjs.org/
 [REST]: https://en.wikipedia.org/wiki/Representational_state_transfer
 [session management]: https://en.wikipedia.org/wiki/Session_(computer_science)#Session_management
@@ -281,6 +309,7 @@ TODO
 [SQL]: https://en.wikipedia.org/wiki/SQL
 [Terminal Emulator (WebStorm)]: https://www.jetbrains.com/help/webstorm/terminal-emulator.html
 [user registration]: https://en.wikipedia.org/wiki/Registered_user
+[VCS]: https://en.wikipedia.org/wiki/Version_control
 [virtual machine]: https://en.wikipedia.org/wiki/Virtual_machine
 [Visual Studio Code]: https://code.visualstudio.com/
 [Vue.js]: https://vuejs.org/
