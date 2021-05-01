@@ -140,7 +140,7 @@ version: "3.7"
 
 services:
   database:
-    image: postgres:12.2-alpine
+    image: postgres:13-alpine
     restart: unless-stopped
     environment:
       - POSTGRES_USER=mydbuser
@@ -158,8 +158,8 @@ services:
 ```
 
 This is a [Docker Compose] configuration file that uses a format called [YAML] and describes a [virtual machine] we
-want to create. Our VM will use an image called [postgres:12.2-alpine] which is essentially a snapshot of an
-[Alpine Linux] operating system with [PostgreSQL] v12.2 already installed on it for us.
+want to create. Our VM will use an image called [postgres:13-alpine] which is essentially a snapshot of an
+[Alpine Linux] operating system with [PostgreSQL] v13 already installed on it for us.
 
 Next, open the [Integrated Terminal (VSCode)] or [Terminal Emulator (WebStorm)] and start up you virtual PostgreSQL
 server by running the following command:
@@ -168,12 +168,12 @@ server by running the following command:
 docker-compose up -d
 ```
 
-The [docker-compose up] command brings up all the services defined in `docker-compose.yml` and the `-d` flag causes
-these services to run in 'detached mode', which just means they run in the background. If you omit the `-d` it will 
-still run, but you will not be able to use your terminal to run any other commands and closing the terminal will stop
-the docker containers.
+The [docker-compose up] command brings up any and all services defined in `docker-compose.yml`. The `-d` flag causes
+these services to run in 'detached mode', which just means they run in the background. If you omit `-d` it will still
+run, but you will not be able to use your terminal to run any other commands and closing the terminal will stop any
+docker containers that were started.
 
-The first time you run [docker-compose up] it will download a [postgres:12.2-alpine] image file, which may take a few
+The first time you run [docker-compose up] it will download a [postgres:13-alpine] image file, which may take a few
 minutes. Once it has finished, your database server will be up and running and listening on port `5432`. You can
 confirm this by running the following command in the terminal:
 
@@ -189,14 +189,14 @@ docker-compose ps
 learn-to-code_database_1   docker-entrypoint.sh postgres   Up (healthy)   0.0.0.0:5432->5432/tcp
 ```
 
-If after running `docker-compose up -d` you encounter an error like this:
+If, after running `docker-compose up -d`, you encounter an error like this:
 
 ```shell
 ERROR: for learn-to-code_database_1  Cannot start service database: driver failed programming external connectivity on
 endpoint learn-to-code_database_1 (...): Bind for 0.0.0.0:5432 failed: port is already allocated
 ```
 
-...it means you already have a program running on your computer (maybe another instance of PostgreSQL) that is using
+...it means you already have a program running on your computer (maybe another instance of PostgreSQL?) that is using
 port `5432`. In this case, you can either shut down the other program (if you know how and if it is safe to do so), or
 you can modify the [docker-compose ports config] in your `docker-compose.yml` file:
 
@@ -205,16 +205,108 @@ you can modify the [docker-compose ports config] in your `docker-compose.yml` fi
       - "9999:5432"
 ```
 
-In this case, you are telling your computer (referred to as the 'host') to listen on port `9999` and forward requests
-that port receives to the virtual database server (referred to as the 'container'), which is listening on its virtual
-port `5432` (the default port used by [PostgreSQL]).
-
-Now that you have your virtual database server up and running, you may be wondering how to use it. You do not yet have
-a convenient way to connect to it, but we will address that in the next section...
+In this case, you are telling your computer (referred to as the 'host') to listen on port `9999` and forward any
+requests it receives to your virtual database server (referred to as the 'container'), which is listening on its port
+`5432` (the default port used by [PostgreSQL]).
 
 ## Run [PGWeb], a web-based [PostgreSQL] browser, in a [virtual machine] using [Docker Compose]
 
+Now that you have a database container up and running, you should be wondering: "How do I use it?"
 
+There are a few different ways to connect to a remote database server. There is a Command Line Interface ([CLI])
+program called [psql], for example, as well as a [Node.js] library we will install later called [node-postgres]. There
+is also a program you can run in your web browser called [PGWeb] that has a nice Graphical User Interface ([GUI]).
+
+Let's install [PGWeb] by adding another [Docker] container to our `docker-compose.yml` file:
+
+```yaml
+  pgweb:
+    image: sosedoff/pgweb
+    restart: always
+    environment:
+      - DATABASE_URL=postgres://mydbuser:mydbpassword@database:5432/mydbname?sslmode=disable
+    ports:
+      - "8081:8081"
+    links:
+      - database:database
+```
+
+Be sure the indentation is correct! Indentation has meaning in [YAML] files. The service name `pgweb` should be at the
+same indentation level as `databse` and one level deeper than `services`.
+
+Putting it all together, your `docker-compose.yml` file should now look like this:
+
+```yaml
+version: "3.7"
+
+services:
+  database:
+    image: postgres:13-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=mydbuser
+      - POSTGRES_PASSWORD=mydbpassword
+      - POSTGRES_DB=mydbname
+    healthcheck:
+      test: pg_isready -U postgres
+      interval: 5s
+      retries: 10
+      timeout: 5s
+    ports:
+      - "5432:5432"
+    volumes:
+      - .:/data/db
+
+  pgweb:
+    image: sosedoff/pgweb
+    restart: always
+    environment:
+      - DATABASE_URL=postgres://mydbuser:mydbpassword@database:5432/mydbname?sslmode=disable
+    ports:
+      - "8081:8081"
+    links:
+      - database:database
+```
+
+The [PGWeb] container is created using an image called [sosedoff/pgweb]. Like [postgres:13-alpine], this image is a
+snapshot of an [Alpine Linux] operating system with a program (in this case, [PGWeb]) already installed on it.
+
+One thing to pay attention to here is the [docker-compose environment config]. Here, we are setting the `DATABASE_URL`
+[environment variable] to something that looks like a URL. This is a [libpq connection URI] used by [PGWeb] to connect
+to the instance of [PostgreSQL] running in our `database` container.
+
+If you look closely at the `DATABASE_URL`, you will see the following parts that correspond to [environment variable]
+and other settings in the `database` service configuration:
+
+* `mydbuser` should match the value of the `POSTGRES_USER` [environment variable]
+* `mydbpassword` should match the value of the `POSTGRES_PASSWORD` [environment variable]
+* `database` should match the name of the service that uses the [postgres:13-alpine] image
+* `5432` should match the port (if you changed that value, change it here as well!)
+* `mydbname` should match the value of the `POSTGRES_DB` [environment variable]
+
+To start this new container, run the same command as before:
+
+```shell
+docker-compose up -d
+```
+
+Now if you run `docker-compose ps`, you should see:
+
+```shell
+          Name                        Command                  State               Ports         
+-------------------------------------------------------------------------------------------------
+learn-to-code_database_1   docker-entrypoint.sh postgres    Up (healthy)   0.0.0.0:5432->5432/tcp
+learn-to-code_pgweb_1      /usr/bin/pgweb --bind=0.0. ...   Up             0.0.0.0:8081->8081/tcp
+```
+
+Notice the [docker-compose ports config] for this container is set to `8081:8081`, meaning any request to port `8081`
+on your local 'host' computer will be forwarded to port `8081` on the virtual web server running in this container.
+
+Now open your favorite web browser and make a request to port `8081` by visiting:
+
+http://localhost:8081/
+
+If everything is configured correctly, you should see the [PGWeb] interface.
 
 ## Create a database table in [PostgreSQL] using [SQL]
 
@@ -298,10 +390,12 @@ TODO
 [DAO]: https://en.wikipedia.org/wiki/Data_access_object
 [Docker]: https://www.docker.com/get-started
 [docker-compose]: https://docs.docker.com/compose/reference/
-[docker-compose up]: https://docs.docker.com/compose/reference/up/
+[docker-compose environment config]: https://docs.docker.com/compose/compose-file/compose-file-v3/#environment
 [docker-compose ports config]: https://docs.docker.com/compose/compose-file/compose-file-v3/#ports
+[docker-compose up]: https://docs.docker.com/compose/reference/up/
 [Docker Compose]: https://docs.docker.com/compose/
 [Docker Desktop]: https://www.docker.com/products/docker-desktop
+[environment variable]: https://en.wikipedia.org/wiki/Environment_variable
 [fs.readFile]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#fs_fs_readfile_path_options_callback
 [fork this repo]: https://docs.github.com/en/github/getting-started-with-github/fork-a-repo
 [Git]: https://git-scm.com/
@@ -312,6 +406,7 @@ TODO
 [git push]: https://git-scm.com/docs/git-push
 [GitHub]: https://docs.github.com/en/github/getting-started-with-github/quickstart
 [GitLab]: https://about.gitlab.com/
+[GUI]: https://en.wikipedia.org/wiki/Graphical_user_interface
 [hash]: https://en.wikipedia.org/wiki/Cryptographic_hash_function
 [HTML]: https://en.wikipedia.org/wiki/HTML
 [HTTP]: https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol
@@ -325,9 +420,11 @@ TODO
 [Jest]: https://jestjs.io/docs/getting-started
 [JSON]: https://en.wikipedia.org/wiki/JSON
 [JWT]: https://en.wikipedia.org/wiki/JSON_Web_Token
+[libpq connection URI]: https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
 [PGWeb]: https://sosedoff.github.io/pgweb/
-[postgres:12.2-alpine]: https://hub.docker.com/_/postgres
-[PostgreSQL]: https://www.postgresql.org/docs/12/index.html
+[postgres:13-alpine]: https://hub.docker.com/_/postgres
+[PostgreSQL]: https://www.postgresql.org/docs/13/index.html
+[psql]: https://www.postgresql.org/docs/13/app-psql.html
 [Node.js]: https://nodejs.org/dist/latest-v14.x/docs/api/index.html
 [node-postgres]: https://node-postgres.com/
 [NPM]: https://www.npmjs.com/get-npm
@@ -338,6 +435,7 @@ TODO
 [RTFM]: https://en.wikipedia.org/wiki/RTFM
 [session management]: https://en.wikipedia.org/wiki/Session_(computer_science)#Session_management
 [setting up Git]: https://docs.github.com/en/github/getting-started-with-github/set-up-git#setting-up-git
+[sosedoff/pgweb]: https://hub.docker.com/r/sosedoff/pgweb/
 [SQL]: https://en.wikipedia.org/wiki/SQL
 [Terminal Emulator (WebStorm)]: https://www.jetbrains.com/help/webstorm/terminal-emulator.html
 [user registration]: https://en.wikipedia.org/wiki/Registered_user
