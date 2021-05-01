@@ -46,10 +46,10 @@ drill down to whatever level of detail you like on any given topic.
 * In the beginning, you need to learn many things in parallel. When you learn to drive a car, you learn to operate the
   machine itself as well as the rules of the road, the physics of objects in motion, the locations and meanings of
   various gauges and controls, and how to anticipate human behavior at high speeds. Eventually, with practice, you can
-  just focus on where you are going and how to get there. Learning to write code is very similar. **Be patient.**
+  just focus on where you are going and how to get there. Learning to code is no different. **Be patient.**
 
 
-* Read the fucking manual (RTFM). The most important thing you can learn is how to find the answers you are looking for
+* Read the fucking manual ([RTFM]). The most important thing you can learn is how to find the answers you are looking for
   without asking for help. It's fine to ask for help, especially when you are just getting started, but most of the
   answers you seek are already written down somewhere and, in many cases, they are in the documentation for whatever
   language or library or framework you are using. **Be diligent.**
@@ -129,8 +129,9 @@ it only supports [JavaScript] and frameworks like [Node.js], [React], and [Vue.j
 
 ## 4. Run a [PostgreSQL] database server in a virtual machine using [Docker Compose]
 
-Once you have [Docker Desktop] and your preferred [IDE] installed, create a new **project folder** on your computer and
-open it in your [IDE]. All the code you write throughout this tutorial will live in your project folder.
+Once you have [Git], [Docker Desktop], and your preferred [IDE] installed, and you have forked this repo and cloned a
+copy of it on your computer, start your [IDE] and open the `learn-to-code` folder. This will be referred to as your
+**project folder** going forward. The code you write throughout this tutorial will live in your project folder.
 
 Start by creating a new file called `docker-compose.yml` and, in that file, copy/paste the following:
 
@@ -156,31 +157,25 @@ services:
       - .:/data/db
 ```
 
-This is a [Docker Compose] configuration file that uses a format called [YAML] and describes a [virtual machine] that
-we would like to create. This VM uses an image called [postgres:12.2-alpine] which is essentially a snapshot of an
-[Alpine Linux] operating system that has [PostgreSQL] v12.2 already installed on it and ready to run.
+This is a [Docker Compose] configuration file that uses a format called [YAML] and describes a [virtual machine] we
+will create. This VM uses an image called [postgres:12.2-alpine] which is essentially a snapshot of an [Alpine Linux]
+operating system that has [PostgreSQL] v12.2 already installed on it.
 
-If you then open the [Integrated Terminal (VSCode)] or [Terminal Emulator (WebStorm)], you can start up this virtual
-database server by running the following command:
+Next, open the [Integrated Terminal (VSCode)] or [Terminal Emulator (WebStorm)] and start up you virtual PostgreSQL
+server by running the following command:
 
 ```shell
 docker-compose up -d
 ```
 
-This [docker-compose up] command brings up all the services defined in `docker-compose.yml`, which is the default name
-of the configuration file used by [docker-compose]. If we wanted to use a different configuration file, we could run:
+The command [docker-compose up] brings up all the services defined in `docker-compose.yml` and the `-d` flag
+causes these services to run in 'detached mode', which just means they run in the background. If you omit that flag it
+will still run, but you will not be able to use your terminal to run any other commands and closing the terminal will
+stop the docker containers.
 
-```shell
-docker-compose -f my-config-file.yml up -d
-```
-
-The `-d` flag after the `up` command causes [docker-compose up] to run these services in "detached mode", which just
-means to run them in the background. If you omit that flag it will still run, but you will not be able to use your
-terminal to run any other commands and closing the terminal would stop the docker containers. 
-
-The first time you run [docker-compose up] it will need to download the [postgres:12.2-alpine] image file, which may
-take a few minutes. Once it has finished, your database will be up and running and listening on port 5432. However, you
-do not yet have a convenient way to connect to it. We will address that in the next section.
+The first time you run [docker-compose up] it will download the [postgres:12.2-alpine] image file, which may take a few
+minutes. Once it has finished, your database server will be up and running and listening on port 5432. However, you do
+not yet have a convenient way to connect to it. We will address that in the next section...
 
 ## Run [PGWeb], a web-based [PostgreSQL] browser, in a [virtual machine] using [Docker Compose]
 
@@ -304,6 +299,7 @@ TODO
 [pull request]: https://git-scm.com/docs/git-request-pull
 [React]: https://reactjs.org/
 [REST]: https://en.wikipedia.org/wiki/Representational_state_transfer
+[RTFM]: https://en.wikipedia.org/wiki/RTFM
 [session management]: https://en.wikipedia.org/wiki/Session_(computer_science)#Session_management
 [setting up Git]: https://docs.github.com/en/github/getting-started-with-github/set-up-git#setting-up-git
 [SQL]: https://en.wikipedia.org/wiki/SQL
