@@ -271,18 +271,27 @@ services:
 The [PGWeb] container is created using an image called [sosedoff/pgweb]. Like [postgres:13-alpine], this image is a
 snapshot of an [Alpine Linux] operating system with a program (in this case, [PGWeb]) already installed on it.
 
-One thing to pay attention to here is the [docker-compose environment config]. Here, we are setting the `DATABASE_URL`
-[environment variable] to something that looks like a URL. This is a [libpq connection URI] used by [PGWeb] to connect
-to the instance of [PostgreSQL] running in our `database` container.
+One thing to pay attention to here is the [docker-compose environment config]:
+
+```yaml
+    environment:
+      - DATABASE_URL=postgres://mydbuser:mydbpassword@database:5432/mydbname?sslmode=disable
+```
+
+Here, we are setting the `DATABASE_URL` [environment variable] to something that looks like a URL. This is a
+[libpq connection URI] used by [PGWeb] to connect to the instance of [PostgreSQL] running in our `database` container.
 
 If you look closely at the `DATABASE_URL`, you will see the following parts that correspond to [environment variable]
 and other settings in the `database` service configuration:
 
 * `mydbuser` should match the value of the `POSTGRES_USER` [environment variable]
 * `mydbpassword` should match the value of the `POSTGRES_PASSWORD` [environment variable]
-* `database` should match the name of the service that uses the [postgres:13-alpine] image
-* `5432` should match the port (if you changed that value, change it here as well!)
+* `database` should match the name of container that uses the [postgres:13-alpine] image
+* `5432` should match the database container host port
 * `mydbname` should match the value of the `POSTGRES_DB` [environment variable]
+
+**NOTE:** If you had to change the host port of your database container due to the default port `5432` already being in
+use by another program, be sure to use the same port in the `DATABASE_URL` for the [PGWeb] container.
 
 To start this new container, run the same command as before:
 
