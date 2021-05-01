@@ -1,0 +1,11 @@
+/node_modules
+/dist
+/ssl
+.DS_Store
+*.log
+.idea
+.vscode
+.cache
+.eslintcache
+package-lock.json
+!/**/.gitkeep
