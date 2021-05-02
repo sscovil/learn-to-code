@@ -1,4 +1,7 @@
-# Full-Stack Software Development with Docker, PostgreSQL & Node.js
+# Full-Stack Software Development
+**Using Docker, PostgreSQL, Node.js & React**
+
+---
 
 This is a crash course on full-stack software development intended for beginners. It does not assume any prior
 programming experience, but the learner is expected to read beyond this text and experiment in order to fully grasp the
@@ -12,7 +15,7 @@ Using this document, the learner will:
 1. Run a [PostgreSQL] database server in a [virtual machine] using [Docker Compose]
 1. Run [PGWeb], a web-based [PostgreSQL] browser, in a [virtual machine] using [Docker Compose]
 1. Create a database table in [PostgreSQL] using [SQL]
-1. Install [Node.js] & Node Package Manager ([NPM]) using Node Version Manager ([NVM])
+1. Install [Node.js] & Node Package Manager ([NPM])
 1. Initialize a [Node.js] package by creating a [package.json] file
 1. Create a Linux web server using [Docker] & [Docker Compose]
 1. Build a simple [web server] and [REST] endpoint using [Node.js]
@@ -30,7 +33,11 @@ Using this document, the learner will:
 1. Create a user profile web page that requires [authentication] to access
 1. Create a user admin page that requires [authorization] to access
 
+---
+
 ## Before we get started...
+
+---
 
 The material we cover here will get you up and running with the essential tools and foundational knowledge you need to
 begin a career as a software developer. It is a hands-on-keyboard tutorial that is meant to be read and acted upon. It
@@ -69,7 +76,11 @@ drill down to whatever level of detail you like on any given topic.
   lessons you will learn how to write an application from scratch. Getting to the next level requires professional
   experience in the industry. **Be humble.**
 
+---
+
 ## 1. Fork and clone this repository using [Git]
+
+---
 
 [Git] is a Version Control System ([VCS]) that is widely used by software developers. [GitHub] is a popular web service
 that provides hosting for public and private [Git] repositories (or "repos"). You can use [Git] without using [GitHub]
@@ -97,15 +108,34 @@ If you make a change to your `local` copy, you need to [git add] the changes (wh
 ready to commit), then [git commit] those changes (which actually updates the version history), then finally [git push]
 those changes up to your `origin` copy to keep it in sync with your `local` copy.
 
+> **IMPORTANT:** You should commit your code changes early and often. The power of version control is that it enables
+> you to go back to previous versions of your code. Throughout this lesson, try and remember to commit your changes and
+> push them up to your `origin` copy to keep it in sync.
+
 From there, you can create a [pull request] to the original `upstream` copy and, if the owner or maintainer of that
 repo approves, they will [git merge] your changes (or grant you permission to do so) and, at that point, all three
 copies will be up to date.
+
+For this project, you do not need to worry about making a [pull request]. This tutorial will be used by others, so your
+changes will never get merged into the original `upstream` copy. However, you should occasionally [git pull] from the
+`upstream master` branch to get the latest changes.
+
+Read this guide to [configure an upstream remote] for your fork, then you can get the latest updates to this document
+using the command:
+
+```shell
+git pull upstream master
+```
 
 There are a ton of resources and tutorials online that explain [Git] in depth. Before going any further, take the time
 to wrap your head around how this tool works. It is a critical concept that you need to understand. Learning it later,
 while you are trying to learn how to develop software, will make the whole process more stressful.
 
+---
+
 ## 2. Install [Docker Desktop] for Windows or Mac
+
+---
 
 Before you get started, you will need to install [Docker] on your computer. [Docker] is a tool that enables developers
 to run a [virtual machine] (or several VMs) on their computer. This is useful because many people have Windows or MacOS
@@ -118,7 +148,11 @@ Linux. Docker enables us to run our software in a local development environment 
 There is a lot to learn about [Docker], but we are only going to cover what you need to know as a software developer to
 be productive with it in your local development environment. Feel free to dive deeper if it interests you.
 
+---
+
 ## 3. Install an [IDE] such as [Visual Studio Code] or [WebStorm]
+
+---
 
 You will want to install an Integrated Development Environment ([IDE]), which is an application used by software
 developers to write code more efficiently. You can write code in a plain old text editor if you prefer, just like you
@@ -129,7 +163,11 @@ learn the tools of the trade.
 is a bit pricey but has plugins for every programming language. [WebStorm] is made by the same company (JetBrains), but
 it only supports [JavaScript] and frameworks like [Node.js], [React], and [Vue.js].
 
+---
+
 ## 4. Run a [PostgreSQL] database server in a virtual machine using [Docker Compose]
+
+---
 
 Once you have [Git], [Docker Desktop], and your preferred [IDE] installed, and you have forked this repo and cloned a
 copy of it on your computer, start your [IDE] and open the `learn-to-code` folder. This will be referred to as your
@@ -417,8 +455,8 @@ and other settings in the `database` service configuration:
 * `5432` should match the database container host port
 * `mydbname` should match the value of the `POSTGRES_DB` [environment variable]
 
-**NOTE:** If you had to change the host port of your database container due to the default port `5432` already being in
-use by another program, be sure to use the same port in the `DATABASE_URL` for the [PGWeb] container.
+> **NOTE:** If you had to change the host port of your database container due to the default port `5432` already being
+> in use by another program, be sure to use the same port in the `DATABASE_URL` for the [PGWeb] container.
 
 To start this new container, run the same command as before:
 
@@ -446,7 +484,11 @@ If everything is configured correctly, you should see the [PGWeb] interface.
 
 ![Screenshot of PGWeb Query tab](/docs/screenshot-pgweb-query-tab.png)
 
+---
+
 ## 6. Create a database table in [PostgreSQL] using [SQL]
+
+---
 
 With [PGWeb] open in your web browser, click the `Query` tab and paste the following [SQL] query into the text area:
 
@@ -571,7 +613,7 @@ There is a lot to unpack there, but essentially this [SQL] query creates a custo
 `users_table_but` (the `but` suffix being an acronym for `before update trigger`) that intercepts all [UPDATE] queries
 on the `users` table and sets the new `updated_at` column value to [now()].
 
-Now that we have our database table created, let's [INSERT] some records to it.
+Now that we have our database table created, let's [INSERT] some records into it.
 
 ```postgresql
 INSERT INTO users (username, password_hash, salt) VALUES
@@ -595,82 +637,178 @@ DELETE FROM users WHERE username='alice';
 Keep in mind that if you destroy your [Docker] `database` container using `docker-compose down`, any tables you created
 and any data you added will be lost. We will address that later when we create a [database migration] utility.
 
-## 7. Install [Node.js] & Node Package Manager ([NPM]) using Node Version Manager ([NVM])
+---
 
-TODO
+## 7. Install [Node.js] & Node Package Manager ([NPM])
+
+---
+
+Now that you have a [PostgreSQL] database server and a nice [GUI] web app to interact with your database, let's get
+ready to write some actual code. We will begin with [Node.js], a server-side [JavaScript] framework.
+
+Like any framework, [Node.js] is a collection of libraries that abstract away a lot of core functionality commonly
+required to build an application. For example, [Node.js http] provides interfaces that are designed to support many
+features of the [HTTP] protocol that can be difficult to work with, like large, possibly chunk-encoded, messages.
+
+By using a well-supported open source framework like [Node.js], we are free to focus on the requirements of the
+application we want to build instead of having to solve a bunch of problems that other engineers have already solved.
+
+You could [install Node.js] by choosing a specific version and downloading the installer from their website, but I
+recommend using a version manager instead. If you are on MacOS or Linux, try Node Version Manager ([NVM]); otherwise,
+there is a similar tool called [Node Version Manager for Windows]. A version manager makes it easy to quickly install
+any version of [Node.js] and switch between them as needed when working on multiple projects.
+
+Whichever method you choose, install [Node.js] v14.x which is the current Long Term Support ([LTS]) version at the time
+of this writing. Doing so will also automatically install Node Package Manager ([NPM]) v6.x, which will be used to
+install other libraries we will use.
+
+> **About version numbers:** You will often see software version numbers like `14.16.1`, `14.x`, or `>=14` and you may
+> be confused by it. Most modern frameworks and libraries use a version format standard known as [semantic versioning],
+> sometimes abbreviated 'semver', where the numbers represent `major.minor.patch` releases. Bug fixes that do not affect
+> the way the software is used will increment the `patch` version. Backwards-compatible additions and changes will
+> increment the `minor` version. Backwards-incompatible or breaking changes will increment the major version. This is
+> important to consider when upgrading the frameworks or libraries you use in your applications. It is also important to
+> be sure you are reading the documentation for the correct version of any software you are using!
+
+---
 
 ## 8. Initialize a [Node.js] package by creating a [package.json] file
 
+---
+
 TODO
+
+---
 
 ## 9. Create a Linux web server using [Docker] & [Docker Compose]
 
+---
+
 TODO
+
+---
 
 ## 10. Build a simple [web server] and [REST] endpoint using [Node.js]
 
+---
+
 TODO
+
+---
 
 ## 11. Install a package as a development dependency using [NPM]
 
+---
+
 TODO
+
+---
 
 ## 12. Write unit tests using [Jest]
 
+---
+
 TODO
+
+---
 
 ## 13. Read the contents of a file using [fs.readFile]
 
+---
+
 TODO
+
+---
 
 ## 14. Install and configure [node-postgres] using [NPM]
 
+---
+
 TODO
+
+---
 
 ## 15. Create a database migration module using [fs.readFile] and [node-postgres]
 
+---
+
 TODO
+
+---
 
 ## 16. Create a cryptographic one-way [hash] using [crypto.createHash]
 
+---
+
 TODO
+
+---
 
 ## 17. Create a Command Line Interface ([CLI]) using [Node.js]
 
+---
+
 TODO
+
+---
 
 ## 18. Create a Data Access Object ([DAO]) for performing [CRUD] operations
 
+---
+
 TODO
+
+---
 
 ## 19. Create [REST] endpoints for [user registration] and [authentication]
 
+---
+
 TODO
+
+---
 
 ## 20. Implement a [session management] strategy using an [HTTP cookie] header
 
+---
+
 TODO
+
+---
 
 ## 21. Create a user login web page using [HTML] and [CSS]
 
+---
+
 TODO
+
+---
 
 ## 22. Create a user profile web page that requires [authentication] to access
 
+---
+
 TODO
+
+---
 
 ## 23. Create a user admin page that requires [authorization] to access
 
+---
+
 TODO
 
+---
 
 
 [Alpine Linux]: https://alpinelinux.org/
+[API]: https://en.wikipedia.org/wiki/API
 [authentication]: https://en.wikipedia.org/wiki/Authentication
 [authorization]: https://en.wikipedia.org/wiki/Authorization
 [BitBucket]: https://bitbucket.org/product
 [CLI]: https://en.wikipedia.org/wiki/Command-line_interface
 [clone your repo]: https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository
+[configure an upstream remote]: https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/configuring-a-remote-for-a-fork
 [CREATE TABLE]: https://www.postgresql.org/docs/13/sql-createtable.html
 [CRUD]: https://en.wikipedia.org/wiki/Create,_read,_update_and_delete
 [crypto.createHash]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#crypto_crypto_createhash_algorithm_options
@@ -707,6 +845,7 @@ TODO
 [INSERT]: https://www.postgresql.org/docs/13/sql-insert.html
 [Install Docker Desktop (MacOS)]: https://docs.docker.com/docker-for-mac/install/
 [Install Docker Desktop (Windows)]: https://docs.docker.com/docker-for-windows/install/
+[install Node.js]: https://nodejs.org/en/download/
 [INTEGER]: https://www.postgresql.org/docs/13/datatype-numeric.html#DATATYPE-INT
 [Integrated Terminal (VSCode)]: https://code.visualstudio.com/docs/editor/integrated-terminal
 [IntelliJ Ultimate Edition]: https://www.jetbrains.com/idea/
@@ -715,12 +854,16 @@ TODO
 [JSON]: https://en.wikipedia.org/wiki/JSON
 [JWT]: https://en.wikipedia.org/wiki/JSON_Web_Token
 [libpq connection URI]: https://www.postgresql.org/docs/13/libpq-connect.html#LIBPQ-CONNSTRING
+[LTS]: https://en.wikipedia.org/wiki/Long-term_support
 [Node.js]: https://nodejs.org/dist/latest-v14.x/docs/api/index.html
+[Node.js http]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#http_http
 [node-postgres]: https://node-postgres.com/
+[Node Version Manager for Windows]: https://github.com/coreybutler/nvm-windows
 [NOT NULL]: https://www.postgresql.org/docs/13/ddl-constraints.html#id-1.5.4.6.6
 [now()]: https://www.postgresql.org/docs/13/functions-datetime.html#FUNCTIONS-DATETIME-CURRENT
 [NPM]: https://www.npmjs.com/get-npm
 [NVM]: https://github.com/nvm-sh/nvm
+[open source]: https://en.wikipedia.org/wiki/Open-source_software
 [package.json]: https://docs.npmjs.com/cli/v6/configuring-npm/package-json
 [PGWeb]: https://sosedoff.github.io/pgweb/
 [postgres:13-alpine]: https://hub.docker.com/_/postgres
@@ -732,6 +875,7 @@ TODO
 [relational database]: https://en.wikipedia.org/wiki/Relational_database
 [REST]: https://en.wikipedia.org/wiki/Representational_state_transfer
 [RTFM]: https://en.wikipedia.org/wiki/RTFM
+[semantic versioning]: https://semver.org/
 [sequence generator]: https://www.postgresql.org/docs/13/sql-createsequence.html
 [SERIAL]: https://www.postgresql.org/docs/13/datatype-numeric.html#DATATYPE-SERIAL
 [session management]: https://en.wikipedia.org/wiki/Session_(computer_science)#Session_management
