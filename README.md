@@ -15,10 +15,10 @@ Using this document, the learner will:
 1. Create a database table in [PostgreSQL] using [SQL]
 1. Install [Node.js] & Node Package Manager ([NPM])
 1. Initialize a [Node.js] package by creating a [package.json] file
-1. Create a Linux web server using [Docker] & [Docker Compose]
-1. Build a simple [web server] and [REST] endpoint using [Node.js]
 1. Install a package as a dependency using [NPM]
+1. Build a simple [web server] and [REST] endpoint using [Node.js]
 1. Write unit tests using [Jest]
+1. Create a Linux web server using [Docker] & [Docker Compose]
 1. Read the contents of a file using [fs.readFile]
 1. Install and configure [node-postgres] using [NPM]
 1. Create a database migration module using [fs.readFile] and [node-postgres]
@@ -734,7 +734,8 @@ describe data that is recognizable to most programming languages. The syntax is 
 same thing. The correct format to use is determined by the software that will read the data. [Docker Compose] uses
 [YAML], but most [JavaScript] applications use [JSON].
 
-## 9. Create a Linux web server using [Docker] & [Docker Compose]
+
+## 9. Install a package as a development dependency using [NPM]
 
 TODO
 
@@ -744,12 +745,12 @@ TODO
 TODO
 
 
-## 11. Install a package as a development dependency using [NPM]
+## 11. Write unit tests using [Jest]
 
 TODO
 
 
-## 12. Write unit tests using [Jest]
+## 12. Create a Linux web server using [Docker] & [Docker Compose]
 
 TODO
 
