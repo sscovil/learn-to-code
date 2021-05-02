@@ -653,7 +653,9 @@ application was written for [Node.js] v14.x, it should continue to work with any
 there is a chance something will break with a `major` version upgrade. Reliable frameworks and libraries will maintain
 a detailed [changelog] (ex: [Node.js changelog]).
 
-It is also important to be sure you are reading the documentation for the correct version of any software you are using!
+It is also important to be sure you are reading the documentation for the correct version of any software you are using.
+If you are reading the docs for a newer version of a library than the one you have installed, you will spend a lot of
+time scratching your head and feel very silly when you figure out what went wrong. Trust me. 🤦
 
 
 ## 8. Initialize a [Node.js] package by creating a [package.json] file
