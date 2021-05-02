@@ -76,9 +76,10 @@ that provides hosting for public and private [Git] repositories (or "repos"). Yo
 (there are other options like [GitLab] or [BitBucket]), but this repo is hosted on [GitHub] so for simplicity it will
 be assumed that you are also using [GitHub].
 
-Follow this guide to [setting up Git] on your computer (if necessary), then [fork this repo] to make yourself a copy.
+Follow this guide to [setting up Git] on your computer (if necessary), then [fork this repo] to make a copy of it in
+your own GitHub account.
 
-Finally, [clone your repo] to make a copy on your computer.
+Finally, [clone your repo] to download a copy from your GitHub account onto your computer.
 
 In the end, there will be three copies of this repo that concern you:
 
@@ -87,7 +88,7 @@ In the end, there will be three copies of this repo that concern you:
 * `local` is your cloned copy of this repo, which lives on your computer
 
 The key to understand here is that you have two copies of the original repo and, whenever any of these three copies
-(your two copies plus the original) changes, you need to update the others to keep them all in sync.
+(your two copies plus the original) changes, you will need to update the others to keep them all in sync.
 
 If the original `upstream` copy changes after you have forked it, you can [git pull] those changes into your `local`
 copy, then [git push] them to your `origin` copy.
@@ -148,7 +149,7 @@ services:
       - POSTGRES_PASSWORD=mydbpassword
       - POSTGRES_DB=mydbname
     healthcheck:
-      test: pg_isready -U postgres
+      test: pg_isready -U ${POSTGRES_USER}
       interval: 5s
       retries: 10
       timeout: 5s
@@ -209,6 +210,131 @@ you can modify the [docker-compose ports config] in your `docker-compose.yml` fi
 In this case, you are telling your computer (referred to as the 'host') to listen on port `9999` and forward any
 requests it receives to your virtual database server (referred to as the 'container'), which is listening on its port
 `5432` (the default port used by [PostgreSQL]).
+
+### Helpful [docker-compose] commands
+
+To stop your running containers without removing them, use:
+
+```shell
+docker-compose stop
+```
+
+You can start them up again using:
+
+```shell
+docker-compose start
+```
+
+The `start` and `stop` commands are equivalent to turning your virtual machines on and off. When you start them up
+again, they will be in the same state they were in when you turned them off.
+
+Sometimes you will want to completely destroy your containers. To do this, use:
+
+```shell
+docker-compose down
+```
+
+You can always create new instances of your containers by running:
+
+```shell
+docker-compose up -d
+```
+
+If you ever want to see the logs for a container, use:
+
+```shell
+docker-compose logs database
+```
+
+Running that command, you should see output like this:
+
+```shell
+Attaching to learn-to-code_database_1
+database_1  | The files belonging to this database system will be owned by user "postgres".
+database_1  | This user must also own the server process.
+database_1  | 
+database_1  | The database cluster will be initialized with locale "en_US.utf8".
+database_1  | The default database encoding has accordingly been set to "UTF8".
+database_1  | The default text search configuration will be set to "english".
+database_1  | 
+database_1  | Data page checksums are disabled.
+database_1  | 
+database_1  | fixing permissions on existing directory /var/lib/postgresql/data ... ok
+database_1  | creating subdirectories ... ok
+database_1  | selecting dynamic shared memory implementation ... posix
+database_1  | selecting default max_connections ... 100
+database_1  | selecting default shared_buffers ... 128MB
+database_1  | selecting default time zone ... UTC
+database_1  | creating configuration files ... ok
+database_1  | running bootstrap script ... ok
+database_1  | sh: locale: not found
+database_1  | 2021-05-02 13:26:50.561 UTC [30] WARNING:  no usable system locales were found
+database_1  | performing post-bootstrap initialization ... ok
+database_1  | syncing data to disk ... ok
+database_1  | 
+database_1  | initdb: warning: enabling "trust" authentication for local connections
+database_1  | You can change this by editing pg_hba.conf or using the option -A, or
+database_1  | --auth-local and --auth-host, the next time you run initdb.
+database_1  | 
+database_1  | Success. You can now start the database server using:
+database_1  | 
+database_1  |     pg_ctl -D /var/lib/postgresql/data -l logfile start
+database_1  | 
+database_1  | waiting for server to start....2021-05-02 13:26:51.020 UTC [35] LOG:  starting PostgreSQL 13.2 on aarch64-unknown-linux-musl, compiled by gcc (Alpine 10.2.1_pre1) 10.2.1 20201203, 64-bit
+database_1  | 2021-05-02 13:26:51.021 UTC [35] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+database_1  | 2021-05-02 13:26:51.024 UTC [36] LOG:  database system was shut down at 2021-05-02 13:26:50 UTC
+database_1  | 2021-05-02 13:26:51.025 UTC [35] LOG:  database system is ready to accept connections
+database_1  |  done
+database_1  | server started
+database_1  | CREATE DATABASE
+database_1  | 
+database_1  | 
+database_1  | /usr/local/bin/docker-entrypoint.sh: ignoring /docker-entrypoint-initdb.d/*
+database_1  | 
+database_1  | waiting for server to shut down....2021-05-02 13:26:51.186 UTC [35] LOG:  received fast shutdown request
+database_1  | 2021-05-02 13:26:51.187 UTC [35] LOG:  aborting any active transactions
+database_1  | 2021-05-02 13:26:51.187 UTC [35] LOG:  background worker "logical replication launcher" (PID 42) exited with exit code 1
+database_1  | 2021-05-02 13:26:51.187 UTC [37] LOG:  shutting down
+database_1  | 2021-05-02 13:26:51.194 UTC [35] LOG:  database system is shut down
+database_1  |  done
+database_1  | server stopped
+database_1  | 
+database_1  | PostgreSQL init process complete; ready for start up.
+database_1  | 
+database_1  | 2021-05-02 13:26:51.300 UTC [1] LOG:  starting PostgreSQL 13.2 on aarch64-unknown-linux-musl, compiled by gcc (Alpine 10.2.1_pre1) 10.2.1 20201203, 64-bit
+database_1  | 2021-05-02 13:26:51.300 UTC [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+database_1  | 2021-05-02 13:26:51.300 UTC [1] LOG:  listening on IPv6 address "::", port 5432
+database_1  | 2021-05-02 13:26:51.301 UTC [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+database_1  | 2021-05-02 13:26:51.304 UTC [49] LOG:  database system was shut down at 2021-05-02 13:26:51 UTC
+database_1  | 2021-05-02 13:26:51.305 UTC [1] LOG:  database system is ready to accept connections
+```
+
+When a container is unhealthy or not working correctly, checking the logs should be one of the first things you do.
+
+If you ever want to run a command from the terminal inside a container, use something like:
+
+```shell
+docker-compose exec database /bin/sh
+```
+
+This example transports you inside the [Alpine Linux] operating system of your `database` container by running
+`/bin/sh`, a Command Line Interface ([CLI]) that uses the [shell] scripting language. You can then navigate the file
+system and run commands as if you were using the [virtual machine].
+
+To exit the [shell] and return to your host computer's terminal, use:
+
+```shell
+exit
+```
+
+Finally, when we create our own [Docker] service later on, any time you change the service’s [Dockerfile] or the
+contents of its build directory, you will need to run:
+
+```shell
+docker-compose build
+```
+
+For now, you do not need to worry about building a [Docker] service. That will be covered in detail later. 
 
 ## 5. Run [PGWeb], a web-based [PostgreSQL] browser, in a [virtual machine] using [Docker Compose]
 
@@ -340,8 +466,8 @@ CREATE TABLE IF NOT EXISTS users (
 Two things should have happened: Below the `Run Query` button it should say "No records found", and in the navigation
 menu on the left side of the screen, under `Tables`, you should now see a link to the newly created `users` table.
 
-Clicking on the `users` table in the side nav menu will open up the `Rows` tab. Again, you will again see the message
-"No records found" because no records have been inserted into that table yet.
+Clicking on the `users` table in the side nav menu will open up the `Rows` tab. Again, you will see the message "No
+records found" because no records have been inserted into that table yet.
 
 Now click on the `Structure` tab, and you will see a table with information describing the table schema defined in the
 [CREATE TABLE] query above.
@@ -560,6 +686,7 @@ TODO
 [docker-compose up]: https://docs.docker.com/compose/reference/up/
 [Docker Compose]: https://docs.docker.com/compose/
 [Docker Desktop]: https://www.docker.com/products/docker-desktop
+[Dockerfile]: https://docs.docker.com/engine/reference/builder/
 [environment variable]: https://en.wikipedia.org/wiki/Environment_variable
 [fs.readFile]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#fs_fs_readfile_path_options_callback
 [fork this repo]: https://docs.github.com/en/github/getting-started-with-github/fork-a-repo
@@ -609,6 +736,7 @@ TODO
 [SERIAL]: https://www.postgresql.org/docs/13/datatype-numeric.html#DATATYPE-SERIAL
 [session management]: https://en.wikipedia.org/wiki/Session_(computer_science)#Session_management
 [setting up Git]: https://docs.github.com/en/github/getting-started-with-github/set-up-git#setting-up-git
+[shell]: https://en.wikipedia.org/wiki/Shell_(computing)
 [sosedoff/pgweb]: https://hub.docker.com/r/sosedoff/pgweb/
 [SQL]: https://en.wikipedia.org/wiki/SQL
 [Terminal Emulator (WebStorm)]: https://www.jetbrains.com/help/webstorm/terminal-emulator.html
