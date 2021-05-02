@@ -210,7 +210,7 @@ In this case, you are telling your computer (referred to as the 'host') to liste
 requests it receives to your virtual database server (referred to as the 'container'), which is listening on its port
 `5432` (the default port used by [PostgreSQL]).
 
-## Run [PGWeb], a web-based [PostgreSQL] browser, in a [virtual machine] using [Docker Compose]
+## 5. Run [PGWeb], a web-based [PostgreSQL] browser, in a [virtual machine] using [Docker Compose]
 
 Now that you have a database container up and running, you should be wondering: "How do I use it?"
 
@@ -320,7 +320,7 @@ If everything is configured correctly, you should see the [PGWeb] interface.
 
 ![Screenshot of PGWeb Query tab](/docs/screenshot-pgweb-query-tab.png)
 
-## Create a database table in [PostgreSQL] using [SQL]
+## 6. Create a database table in [PostgreSQL] using [SQL]
 
 With [PGWeb] open in your web browser, click the `Query` tab and paste the following [SQL] query into the text area:
 
@@ -445,71 +445,71 @@ There is a lot to unpack there, but essentially this [SQL] query creates a custo
 `users_table_but` (the `but` suffix being an acronym for `before update trigger`) that intercepts all [UPDATE] queries
 on the `users` table and sets the new `updated_at` column value to [now()].
 
-## Install [Node.js] & Node Package Manager ([NPM]) using Node Version Manager ([NVM])
+## 7. Install [Node.js] & Node Package Manager ([NPM]) using Node Version Manager ([NVM])
 
 TODO
 
-## Initialize a [Node.js] package by creating a [package.json] file
+## 8. Initialize a [Node.js] package by creating a [package.json] file
 
 TODO
 
-## Create a Linux web server using [Docker] & [Docker Compose]
+## 9. Create a Linux web server using [Docker] & [Docker Compose]
 
 TODO
 
-## Build a simple [web server] and [REST] endpoint using [Node.js]
+## 10. Build a simple [web server] and [REST] endpoint using [Node.js]
 
 TODO
 
-## Install a package as a development dependency using [NPM]
+## 11. Install a package as a development dependency using [NPM]
 
 TODO
 
-## Write unit tests using [Jest]
+## 12. Write unit tests using [Jest]
 
 TODO
 
-## Read the contents of a file using [fs.readFile]
+## 13. Read the contents of a file using [fs.readFile]
 
 TODO
 
-## Install and configure [node-postgres] using [NPM]
+## 14. Install and configure [node-postgres] using [NPM]
 
 TODO
 
-## Create a database migration module using [fs.readFile] and [node-postgres]
+## 15. Create a database migration module using [fs.readFile] and [node-postgres]
 
 TODO
 
-## Create a cryptographic one-way [hash] using [crypto.createHash]
+## 16. Create a cryptographic one-way [hash] using [crypto.createHash]
 
 TODO
 
-## Create a Command Line Interface ([CLI]) using [Node.js]
+## 17. Create a Command Line Interface ([CLI]) using [Node.js]
 
 TODO
 
-## Create a Data Access Object ([DAO]) for performing [CRUD] operations
+## 18. Create a Data Access Object ([DAO]) for performing [CRUD] operations
 
 TODO
 
-## Create [REST] endpoints for [user registration] and [authentication]
+## 19. Create [REST] endpoints for [user registration] and [authentication]
 
 TODO
 
-## Implement a [session management] strategy using an [HTTP cookie] header
+## 20. Implement a [session management] strategy using an [HTTP cookie] header
 
 TODO
 
-## Create a user login web page using [HTML] and [CSS]
+## 21. Create a user login web page using [HTML] and [CSS]
 
 TODO
 
-## Create a user profile web page that requires [authentication] to access
+## 22. Create a user profile web page that requires [authentication] to access
 
 TODO
 
-## Create a user admin page that requires [authorization] to access
+## 23. Create a user admin page that requires [authorization] to access
 
 TODO
 
