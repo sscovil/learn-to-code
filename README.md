@@ -1,8 +1,6 @@
 # Full-Stack Software Development
 **Using Docker, PostgreSQL, Node.js & React**
 
----
-
 This is a crash course on full-stack software development intended for beginners. It does not assume any prior
 programming experience, but the learner is expected to read beyond this text and experiment in order to fully grasp the
 material. Web links are provided throughout to further explain key terms and technologies.
@@ -35,8 +33,6 @@ Using this document, the learner will:
 
 
 ## Before we get started...
-
----
 
 The material we cover here will get you up and running with the essential tools and foundational knowledge you need to
 begin a career as a software developer. It is a hands-on-keyboard tutorial that is meant to be read and acted upon. It
@@ -77,8 +73,6 @@ drill down to whatever level of detail you like on any given topic.
 
 
 ## 1. Fork and clone this repository using [Git]
-
----
 
 [Git] is a Version Control System ([VCS]) that is widely used by software developers. [GitHub] is a popular web service
 that provides hosting for public and private [Git] repositories (or "repos"). You can use [Git] without using [GitHub]
@@ -132,8 +126,6 @@ while you are trying to learn how to develop software, will make the whole proce
 
 ## 2. Install [Docker Desktop] for Windows or Mac
 
----
-
 Before you get started, you will need to install [Docker] on your computer. [Docker] is a tool that enables developers
 to run a [virtual machine] (or several VMs) on their computer. This is useful because many people have Windows or MacOS
 as an operating system on their computer, but the code they write is often deployed to a server running some flavor of
@@ -148,8 +140,6 @@ be productive with it in your local development environment. Feel free to dive d
 
 ## 3. Install an [IDE] such as [Visual Studio Code] or [WebStorm]
 
----
-
 You will want to install an Integrated Development Environment ([IDE]), which is an application used by software
 developers to write code more efficiently. You can write code in a plain old text editor if you prefer, just like you
 can build a house with a hammer and hand saw, but if you are serious about becoming a software developer you should
@@ -161,8 +151,6 @@ it only supports [JavaScript] and frameworks like [Node.js], [React], and [Vue.j
 
 
 ## 4. Run a [PostgreSQL] database server in a virtual machine using [Docker Compose]
-
----
 
 Once you have [Git], [Docker Desktop], and your preferred [IDE] installed, and you have forked this repo and cloned a
 copy of it on your computer, start your [IDE] and open the `learn-to-code` folder. This will be referred to as your
@@ -372,8 +360,6 @@ For now, you do not need to worry about building a [Docker] service. That will b
 
 ## 5. Run [PGWeb], a web-based [PostgreSQL] browser, in a [virtual machine] using [Docker Compose]
 
----
-
 Now that you have a database container up and running, you should be wondering: "How do I use it?"
 
 There are a few different ways to connect to a remote database server. There is a Command Line Interface ([CLI])
@@ -484,8 +470,6 @@ If everything is configured correctly, you should see the [PGWeb] interface.
 
 
 ## 6. Create a database table in [PostgreSQL] using [SQL]
-
----
 
 With [PGWeb] open in your web browser, click the `Query` tab and paste the following [SQL] query into the text area:
 
@@ -637,8 +621,6 @@ and any data you added will be lost. We will address that later when we create a
 
 ## 7. Install [Node.js] & Node Package Manager ([NPM])
 
----
-
 Now that you have a [PostgreSQL] database server and a nice [GUI] web app to interact with your database, let's get
 ready to write some actual code. We will begin with [Node.js], a server-side [JavaScript] framework.
 
@@ -667,119 +649,153 @@ install other libraries we will use.
 > be sure you are reading the documentation for the correct version of any software you are using!
 
 
-
 ## 8. Initialize a [Node.js] package by creating a [package.json] file
 
----
+With [Node.js] and [NPM] installed, let's initialize our application by creating a [package.json] file. [NPM] actually
+provides a [CLI] that walks you through the process.
 
-TODO
+From the terminal, in your project folder, run:
 
+```shell
+npm init
+```
 
+...then fill in the information you are prompted for. Default values appear inside parentheses; to use them, just hit
+enter. For example:
+
+```shell
+package name: (learn-to-code) 
+version: (1.0.0) 
+description: A crash course on full-stack software development with Docker, PostgreSQL, Node.js & React
+entry point: (index.js) 
+test command: jest
+git repository: (https://github.com/sscovil/learn-to-code.git) 
+keywords: docker,postgres,node,react,tutorial
+author: Shaun Scovil <sscovil@gmail.com>
+license: (ISC) UNLICENSED
+```
+
+Here, the default values for `name`, `version`, `entry point`, and `git repository` were used, but the other fields were
+filled in. The [CLI] then generated the following [package.json] file:
+
+```json
+{
+  "name": "learn-to-code",
+  "version": "1.0.0",
+  "description": "A crash course on full-stack software development with Docker, PostgreSQL, Node.js & React",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sscovil/learn-to-code.git"
+  },
+  "keywords": [
+    "docker",
+    "postgres",
+    "node",
+    "react",
+    "tutorial"
+  ],
+  "author": "Shaun Scovil <sscovil@gmail.com>",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/sscovil/learn-to-code/issues"
+  },
+  "homepage": "https://github.com/sscovil/learn-to-code#readme"
+}
+```
+
+A lot of this information really only matters if you publish your code on [npmjs.com], which you would only do if you
+wanted to turn your project into an [open source] library for other developers to use. Every time you install a
+dependency using [npm install], you are using code that someone else published to [npmjs.com].
+
+We will not be building anything that you would publish to [npmjs.com], but we will be installing a few libraries as
+dependencies for our application. For this reason, we need a [package.json] file.
+
+> **JSON vs YAML:** Earlier, we created a configuration file called `docker-compose.yml` that uses the [YAML] format.
+> Now we have created a configuration file called `package.json` that uses the [JSON] format. Both of these formats are
+> standard ways to describe data that is recognizable to most programming languages. The syntax is different, but they
+> are effectively the same thing. The correct format to use is determined by the software that will read the data.
+> [Docker Compose] uses [YAML], but most [JavaScript] applications use [JSON].
 
 ## 9. Create a Linux web server using [Docker] & [Docker Compose]
-
----
 
 TODO
 
 
 ## 10. Build a simple [web server] and [REST] endpoint using [Node.js]
 
----
-
 TODO
 
 
 ## 11. Install a package as a development dependency using [NPM]
-
----
 
 TODO
 
 
 ## 12. Write unit tests using [Jest]
 
----
-
 TODO
 
 
 ## 13. Read the contents of a file using [fs.readFile]
-
----
 
 TODO
 
 
 ## 14. Install and configure [node-postgres] using [NPM]
 
----
-
 TODO
 
 
 ## 15. Create a database migration module using [fs.readFile] and [node-postgres]
-
----
 
 TODO
 
 
 ## 16. Create a cryptographic one-way [hash] using [crypto.createHash]
 
----
-
 TODO
 
 
 ## 17. Create a Command Line Interface ([CLI]) using [Node.js]
-
----
 
 TODO
 
 
 ## 18. Create a Data Access Object ([DAO]) for performing [CRUD] operations
 
----
-
 TODO
 
 
 ## 19. Create [REST] endpoints for [user registration] and [authentication]
-
----
 
 TODO
 
 
 ## 20. Implement a [session management] strategy using an [HTTP cookie] header
 
----
-
 TODO
 
 
 ## 21. Create a user login web page using [HTML] and [CSS]
-
----
 
 TODO
 
 
 ## 22. Create a user profile web page that requires [authentication] to access
 
----
-
 TODO
 
 
 ## 23. Create a user admin page that requires [authorization] to access
 
----
-
 TODO
-
 
 
 [Alpine Linux]: https://alpinelinux.org/
@@ -843,6 +859,8 @@ TODO
 [NOT NULL]: https://www.postgresql.org/docs/13/ddl-constraints.html#id-1.5.4.6.6
 [now()]: https://www.postgresql.org/docs/13/functions-datetime.html#FUNCTIONS-DATETIME-CURRENT
 [NPM]: https://www.npmjs.com/get-npm
+[npm install]: https://docs.npmjs.com/cli/v7/commands/npm-install
+[npmjs.com]: https://www.npmjs.com/
 [NVM]: https://github.com/nvm-sh/nvm
 [open source]: https://en.wikipedia.org/wiki/Open-source_software
 [package.json]: https://docs.npmjs.com/cli/v6/configuring-npm/package-json
