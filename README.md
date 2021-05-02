@@ -13,6 +13,7 @@ Using this document, the learner will:
 1. Run [PGWeb], a web-based [PostgreSQL] browser, in a [virtual machine] using [Docker Compose]
 1. Create a database table in [PostgreSQL] using [SQL]
 1. Install [Node.js] & Node Package Manager ([NPM]) using Node Version Manager ([NVM])
+1. Initialize a [Node.js] package by creating a [package.json] file
 1. Create a Linux web server using [Docker] & [Docker Compose]
 1. Build a simple [web server] and [REST] endpoint using [Node.js]
 1. Install a package as a dependency using [NPM]
@@ -317,11 +318,138 @@ http://localhost:8081/
 
 If everything is configured correctly, you should see the [PGWeb] interface.
 
+![Screenshot of PGWeb Query tab](/docs/screenshot-pgweb-query-tab.png)
+
 ## Create a database table in [PostgreSQL] using [SQL]
+
+With [PGWeb] open in your web browser, click the `Query` tab and paste the following [SQL] query into the text area:
+
+```postgresql
+CREATE TABLE IF NOT EXISTS users (
+    id            SERIAL PRIMARY KEY,
+    username      TEXT UNIQUE NOT NULL,
+    password_hash TEXT UNIQUE NOT NULL,
+    salt          TEXT UNIQUE NOT NULL,
+    created_at    TIMESTAMP NOT NULL DEFAULT now(),
+    updated_at    TIMESTAMP
+);
+```
+
+...and then click the `Run Query` button.
+
+Two things should have happened: Below the `Run Query` button it should say "No records found", and in the navigation
+menu on the left side of the screen, under `Tables`, you should now see a link to the newly created `users` table.
+
+Clicking on the `users` table in the side nav menu will open up the `Rows` tab. Again, you will again see the message
+"No records found" because no records have been inserted into that table yet.
+
+Now click on the `Structure` tab, and you will see a table with information describing the table schema defined in the
+[CREATE TABLE] query above.
+
+![Screenshot of PGWeb users table Structure Tab](/docs/screenshot-pgweb-users-structure-tab.png)
+
+Let's break down that [SQL] query line by line.
+
+```postgresql
+CREATE TABLE IF NOT EXISTS users (
+```
+
+The first line should be fairly self-evident. It instructs [PostgreSQL] to create a new database table called `users`
+only if that table does not already exist. If you run the query again from the `Query` tab, nothing will happen. If you
+remove the `IF NOT EXISTS` clause, it will raise an error: `pq: relation "users" already exists`.
+
+```postgresql
+CREATE TABLE IF NOT EXISTS users (
+    id            SERIAL PRIMARY KEY,
+```
+
+The second line states that the `users` table should have a column called `id`. This column uses the [SERIAL] data type,
+which means the value must be an [INTEGER] that is [NOT NULL] and will be assigned an auto-incrementing [DEFAULT] value
+that is derived from a [sequence generator] (in this case, `users_id_seq`). It will also serve as the [PRIMARY KEY] for
+this table, which means it must be [UNIQUE] and [NOT NULL].
+
+As a general rule for any [relational database], every table should have a [PRIMARY KEY].
+
+```postgresql
+CREATE TABLE IF NOT EXISTS users (
+    id            SERIAL PRIMARY KEY,
+    username      TEXT UNIQUE NOT NULL,
+```
+
+The third line specifies a column called `username`. Data in this column must be of the [TEXT] data type. Although this
+is not the [PRIMARY KEY], it does have the same [UNIQUE] and [NOT NULL] constraints.
+
+If you attempt to [INSERT] two records with the same `username` value, the second attempt would raise an error: `pq: 
+duplicate key value violates unique constraint "users_username_key"`.
+
+```postgresql
+CREATE TABLE IF NOT EXISTS users (
+    id            SERIAL PRIMARY KEY,
+    username      TEXT UNIQUE NOT NULL,
+    password_hash TEXT UNIQUE NOT NULL,
+```
+
+The forth line adds another [TEXT] column called `password_hash` with [UNIQUE] and [NOT NULL] constraints. This column
+will be used to store a cryptographic [hash] of the user's password, which will be explained later.
+
+```postgresql
+CREATE TABLE IF NOT EXISTS users (
+    id            SERIAL PRIMARY KEY,
+    username      TEXT UNIQUE NOT NULL,
+    password_hash TEXT UNIQUE NOT NULL,
+    salt          TEXT UNIQUE NOT NULL,
+```
+
+The fifth line adds yet another [TEXT] column called `salt` with [UNIQUE] and [NOT NULL] constraints. The value stored
+in this column will be a Universally Unique Identifier ([UUID]) and will be combined with the user's password to
+generate a unique cryptographic [hash]. Again, this will be explained in greater detail later.
+
+```postgresql
+CREATE TABLE IF NOT EXISTS users (
+    id            SERIAL PRIMARY KEY,
+    username      TEXT UNIQUE NOT NULL,
+    password_hash TEXT UNIQUE NOT NULL,
+    salt          TEXT UNIQUE NOT NULL,
+    created_at    TIMESTAMP NOT NULL DEFAULT now(),
+    updated_at    TIMESTAMP
+);
+```
+
+The last two lines add [TIMESTAMP] columns called `created_at` and `updated_at`. You will notice that `created_at` has
+a [NOT NULL] constraint as well as a [DEFAULT] value. This means that, if you [INSERT] a row without specifying a
+`created_at` value, a timestamp for the current date and time will be assigned by the built-in [now()] function.
+
+The `updated_at` column has no constraints, meaning it will be set to `NULL` by default. If we want to get clever, we
+can make it that any time we [UPDATE] a row, a timestamp for the current date and time automatically gets assigned by
+the built-in [now()] function as well. However, that requires adding a [trigger function].
+
+```postgresql
+CREATE OR REPLACE FUNCTION users_table_but()
+    RETURNS TRIGGER
+    SET SCHEMA 'public'
+    LANGUAGE plpgsql
+    SET search_path = public
+    AS '
+    BEGIN
+        NEW.updated_at := now();
+        RETURN NEW;
+    END;
+    ';
+
+CREATE TRIGGER users_table_but
+    BEFORE UPDATE ON users
+    FOR EACH ROW EXECUTE PROCEDURE users_table_but();
+```
+
+There is a lot to unpack there, but essentially this [SQL] query creates a custom function in [PostgreSQL] called
+`users_table_but` (the `but` suffix being an acronym for `before update trigger`) that intercepts all [UPDATE] queries
+on the `users` table and sets the new `updated_at` column value to [now()].
+
+## Install [Node.js] & Node Package Manager ([NPM]) using Node Version Manager ([NVM])
 
 TODO
 
-## Install [Node.js] & Node Package Manager ([NPM]) using Node Version Manager ([NVM])
+## Initialize a [Node.js] package by creating a [package.json] file
 
 TODO
 
@@ -393,10 +521,12 @@ TODO
 [BitBucket]: https://bitbucket.org/product
 [CLI]: https://en.wikipedia.org/wiki/Command-line_interface
 [clone your repo]: https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository
+[CREATE TABLE]: https://www.postgresql.org/docs/13/sql-createtable.html
 [CRUD]: https://en.wikipedia.org/wiki/Create,_read,_update_and_delete
 [crypto.createHash]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#crypto_crypto_createhash_algorithm_options
 [CSS]: https://en.wikipedia.org/wiki/CSS
 [DAO]: https://en.wikipedia.org/wiki/Data_access_object
+[DEFAULT]: https://www.postgresql.org/docs/13/ddl-default.html
 [Docker]: https://www.docker.com/get-started
 [docker-compose]: https://docs.docker.com/compose/reference/
 [docker-compose environment config]: https://docs.docker.com/compose/compose-file/compose-file-v3/#environment
@@ -421,33 +551,48 @@ TODO
 [HTTP]: https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol
 [HTTP cookie]: https://en.wikipedia.org/wiki/HTTP_cookie
 [IDE]: https://en.wikipedia.org/wiki/Integrated_development_environment
+[INSERT]: https://www.postgresql.org/docs/13/sql-insert.html
 [Install Docker Desktop (MacOS)]: https://docs.docker.com/docker-for-mac/install/
 [Install Docker Desktop (Windows)]: https://docs.docker.com/docker-for-windows/install/
+[INTEGER]: https://www.postgresql.org/docs/13/datatype-numeric.html#DATATYPE-INT
 [Integrated Terminal (VSCode)]: https://code.visualstudio.com/docs/editor/integrated-terminal
 [IntelliJ Ultimate Edition]: https://www.jetbrains.com/idea/
 [JavaScript]: https://en.wikipedia.org/wiki/JavaScript
 [Jest]: https://jestjs.io/docs/getting-started
 [JSON]: https://en.wikipedia.org/wiki/JSON
 [JWT]: https://en.wikipedia.org/wiki/JSON_Web_Token
-[libpq connection URI]: https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
+[libpq connection URI]: https://www.postgresql.org/docs/13/libpq-connect.html#LIBPQ-CONNSTRING
+[Node.js]: https://nodejs.org/dist/latest-v14.x/docs/api/index.html
+[node-postgres]: https://node-postgres.com/
+[NOT NULL]: https://www.postgresql.org/docs/13/ddl-constraints.html#id-1.5.4.6.6
+[now()]: https://www.postgresql.org/docs/13/functions-datetime.html#FUNCTIONS-DATETIME-CURRENT
+[NPM]: https://www.npmjs.com/get-npm
+[NVM]: https://github.com/nvm-sh/nvm
+[package.json]: https://docs.npmjs.com/cli/v6/configuring-npm/package-json
 [PGWeb]: https://sosedoff.github.io/pgweb/
 [postgres:13-alpine]: https://hub.docker.com/_/postgres
 [PostgreSQL]: https://www.postgresql.org/docs/13/index.html
+[PRIMARY KEY]: https://www.postgresql.org/docs/13/ddl-constraints.html#DDL-CONSTRAINTS-PRIMARY-KEYS
 [psql]: https://www.postgresql.org/docs/13/app-psql.html
-[Node.js]: https://nodejs.org/dist/latest-v14.x/docs/api/index.html
-[node-postgres]: https://node-postgres.com/
-[NPM]: https://www.npmjs.com/get-npm
-[NVM]: https://github.com/nvm-sh/nvm
 [pull request]: https://git-scm.com/docs/git-request-pull
 [React]: https://reactjs.org/
+[relational database]: https://en.wikipedia.org/wiki/Relational_database
 [REST]: https://en.wikipedia.org/wiki/Representational_state_transfer
 [RTFM]: https://en.wikipedia.org/wiki/RTFM
+[sequence generator]: https://www.postgresql.org/docs/13/sql-createsequence.html
+[SERIAL]: https://www.postgresql.org/docs/13/datatype-numeric.html#DATATYPE-SERIAL
 [session management]: https://en.wikipedia.org/wiki/Session_(computer_science)#Session_management
 [setting up Git]: https://docs.github.com/en/github/getting-started-with-github/set-up-git#setting-up-git
 [sosedoff/pgweb]: https://hub.docker.com/r/sosedoff/pgweb/
 [SQL]: https://en.wikipedia.org/wiki/SQL
 [Terminal Emulator (WebStorm)]: https://www.jetbrains.com/help/webstorm/terminal-emulator.html
+[TEXT]: https://www.postgresql.org/docs/13/datatype-character.html
+[TIMESTAMP]: https://www.postgresql.org/docs/13/datatype-datetime.html
+[trigger function]: https://www.postgresql.org/docs/13/plpgsql-trigger.html
+[UNIQUE]: https://www.postgresql.org/docs/13/ddl-constraints.html#DDL-CONSTRAINTS-UNIQUE-CONSTRAINTS
+[UPDATE]: https://www.postgresql.org/docs/13/sql-update.html
 [user registration]: https://en.wikipedia.org/wiki/Registered_user
+[UUID]: https://en.wikipedia.org/wiki/Universally_unique_identifier
 [VCS]: https://en.wikipedia.org/wiki/Version_control
 [virtual machine]: https://en.wikipedia.org/wiki/Virtual_machine
 [Visual Studio Code]: https://code.visualstudio.com/
