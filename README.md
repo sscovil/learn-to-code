@@ -389,7 +389,7 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash TEXT UNIQUE NOT NULL,
 ```
 
-The forth line adds another [TEXT] column called `password_hash` with [UNIQUE] and [NOT NULL] constraints. This column
+The fourth line adds another [TEXT] column called `password_hash` with [UNIQUE] and [NOT NULL] constraints. This column
 will be used to store a cryptographic [hash] of the user's password, which will be explained later.
 
 ```postgresql
@@ -420,7 +420,7 @@ a [NOT NULL] constraint as well as a [DEFAULT] value. This means that, if you [I
 `created_at` value, a timestamp for the current date and time will be assigned by the built-in [now()] function.
 
 The `updated_at` column has no constraints, meaning it will be set to `NULL` by default. If we want to get clever, we
-can make it that any time we [UPDATE] a row, a timestamp for the current date and time automatically gets assigned by
+can make it so that any time we [UPDATE] a row, a timestamp for the current date and time automatically gets assigned by
 the built-in [now()] function as well. However, that requires adding a [trigger function].
 
 ```postgresql
@@ -444,6 +444,30 @@ CREATE TRIGGER users_table_but
 There is a lot to unpack there, but essentially this [SQL] query creates a custom function in [PostgreSQL] called
 `users_table_but` (the `but` suffix being an acronym for `before update trigger`) that intercepts all [UPDATE] queries
 on the `users` table and sets the new `updated_at` column value to [now()].
+
+Now that we have our database table created, let's [INSERT] some records to it.
+
+```postgresql
+INSERT INTO users (username, password_hash, salt) VALUES
+    ('alice', 'foo', 'xxx'),
+    ('bob', 'bar', 'yyy'),
+    ('carol', 'baz', 'zzz');
+```
+
+Now let's [UPDATE] a record and confirm that the `updated_at` column automatically gets assigned a value.
+
+```postgresql
+UPDATE users SET username='candice' WHERE username='carol';
+```
+
+Finally, let's [DELETE] a row.
+
+```postgresql
+DELETE FROM users WHERE username='alice';
+```
+
+Keep in mind that if you destroy your [Docker] `database` container using `docker-compose down`, any tables you created
+and any data you added will be lost. We will address that later when we create a [database migration] utility.
 
 ## 7. Install [Node.js] & Node Package Manager ([NPM]) using Node Version Manager ([NVM])
 
@@ -526,7 +550,9 @@ TODO
 [crypto.createHash]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#crypto_crypto_createhash_algorithm_options
 [CSS]: https://en.wikipedia.org/wiki/CSS
 [DAO]: https://en.wikipedia.org/wiki/Data_access_object
+[database migration]: https://en.wikipedia.org/wiki/Schema_migration
 [DEFAULT]: https://www.postgresql.org/docs/13/ddl-default.html
+[DELETE]: https://www.postgresql.org/docs/13/sql-delete.html
 [Docker]: https://www.docker.com/get-started
 [docker-compose]: https://docs.docker.com/compose/reference/
 [docker-compose environment config]: https://docs.docker.com/compose/compose-file/compose-file-v3/#environment
