@@ -640,13 +640,20 @@ Whichever method you choose, install [Node.js] v14.x which is the current Long T
 of this writing. Doing so will also automatically install Node Package Manager ([NPM]) v6.x, which will be used to
 install other libraries we will use.
 
-> **About version numbers:** You will often see software version numbers like `14.16.1`, `14.x`, or `>=14` and you may
-> be confused by it. Most modern frameworks and libraries use a version format standard known as [semantic versioning],
-> sometimes abbreviated 'semver', where the numbers represent `major.minor.patch` releases. Bug fixes that do not affect
-> the way the software is used will increment the `patch` version. Backwards-compatible additions and changes will
-> increment the `minor` version. Backwards-incompatible or breaking changes will increment the major version. This is
-> important to consider when upgrading the frameworks or libraries you use in your applications. It is also important to
-> be sure you are reading the documentation for the correct version of any software you are using!
+### About version numbers
+
+You will often see software version numbers like `14.16.1`, `14.x`, or `>=14` and you may be confused by it. Most modern
+frameworks and libraries use a version format standard known as [semantic versioning], sometimes abbreviated 'semver',
+where the numbers represent `major.minor.patch` releases. Bug fixes that do not affect the way the software is used will
+increment the `patch` version. Backwards-compatible additions and changes will increment the `minor` version.
+Backwards-incompatible or breaking changes will increment the major version.
+
+This is important to consider when upgrading the frameworks or libraries you use in your applications. If your
+application was written for [Node.js] v14.x, it should continue to work with any `minor` or `patch` version upgrade, but
+there is a chance something will break with a `major` version upgrade. Reliable frameworks and libraries will maintain
+a detailed [changelog] (ex: [Node.js changelog]).
+
+It is also important to be sure you are reading the documentation for the correct version of any software you are using!
 
 
 ## 8. Initialize a [Node.js] package by creating a [package.json] file
@@ -717,11 +724,13 @@ dependency using [npm install], you are using code that someone else published t
 We will not be building anything that you would publish to [npmjs.com], but we will be installing a few libraries as
 dependencies for our application. For this reason, we need a [package.json] file.
 
-> **JSON vs YAML:** Earlier, we created a configuration file called `docker-compose.yml` that uses the [YAML] format.
-> Now we have created a configuration file called `package.json` that uses the [JSON] format. Both of these formats are
-> standard ways to describe data that is recognizable to most programming languages. The syntax is different, but they
-> are effectively the same thing. The correct format to use is determined by the software that will read the data.
-> [Docker Compose] uses [YAML], but most [JavaScript] applications use [JSON].
+### JSON vs. YAML
+
+Earlier, we created a configuration file called `docker-compose.yml` that uses the [YAML] format. Now we have created a
+configuration file called `package.json` that uses the [JSON] format. Both of these formats are standard ways to
+describe data that is recognizable to most programming languages. The syntax is different, but they are effectively the
+same thing. The correct format to use is determined by the software that will read the data. [Docker Compose] uses
+[YAML], but most [JavaScript] applications use [JSON].
 
 ## 9. Create a Linux web server using [Docker] & [Docker Compose]
 
@@ -803,6 +812,7 @@ TODO
 [authentication]: https://en.wikipedia.org/wiki/Authentication
 [authorization]: https://en.wikipedia.org/wiki/Authorization
 [BitBucket]: https://bitbucket.org/product
+[changelog]: https://en.wikipedia.org/wiki/Changelog
 [CLI]: https://en.wikipedia.org/wiki/Command-line_interface
 [clone your repo]: https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository
 [configure an upstream remote]: https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/configuring-a-remote-for-a-fork
@@ -853,6 +863,7 @@ TODO
 [libpq connection URI]: https://www.postgresql.org/docs/13/libpq-connect.html#LIBPQ-CONNSTRING
 [LTS]: https://en.wikipedia.org/wiki/Long-term_support
 [Node.js]: https://nodejs.org/dist/latest-v14.x/docs/api/index.html
+[Node.js changelog]: https://github.com/nodejs/node/blob/master/CHANGELOG.md
 [Node.js http]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#http_http
 [node-postgres]: https://node-postgres.com/
 [Node Version Manager for Windows]: https://github.com/coreybutler/nvm-windows
