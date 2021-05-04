@@ -908,18 +908,18 @@ There is a lot going on here, so let's break it down.
 const http = require('http')
 ```
 
-At the top of the file, we import the [Node.js http] module and assign it to a constant (or [const]) variable called
-`http`. Although the module is called `http`, we could just as easily name our variable something else, like `h` or
-`foo`, and it would work the same way. Think of variable names as aliases we assign to data, [objects] or [functions].
+At the top of the file, we import the [Node.js http] module and assign it to a constant (or [const]) called `http`.
+Although the module is called 'http', we could just as easily name our variable something else, like `h` or `foo`, and
+it would work the same way. Think of variable names as aliases we assign to data, [objects] or [functions].
 
 ```javascript
 const host = process.env.APP_HOST || 'localhost'
 const port = process.env.APP_PORT || 8080
 ```
 
-Here, we declare two more constant variables: `host` and `port`. This time, instead of importing their values from a
-module, we assign them each the value of an [environment variable] (`APP_HOST` and `APP_PORT`, respectively). We also
-use the [logical OR] operator `||` to assign default values, in case the environment variables are [undefined].
+Here, we declare two more constants: `host` and `port`. This time, instead of importing their values from a module, we
+assign them each the value of an [environment variable] (`APP_HOST` and `APP_PORT`, respectively). We also use the
+[logical OR] operator `||` to assign default values, in case the environment variables are [undefined].
 
 ```javascript
 const router = async (req, res) => {
@@ -953,8 +953,8 @@ Our `router` function is going to serve as a request listener, meaning it will b
 ```
 
 The `router` function starts by declaring two variables using the [let] statement, which differs from [const] in that
-the value of a [const] variable cannot be changed (thus it is constant). Since we will assign different values to the
-`body` and `code` variables based on [conditional logic], we declare them using [let].
+the value of a [const] cannot be changed (thus it is constant). Since we will assign different values to the `body` and
+`code` variables based on [conditional logic], we declare them using [let].
 
 ```javascript
     if ('/ping' === req.url) {
@@ -966,7 +966,7 @@ the value of a [const] variable cannot be changed (thus it is constant). Since w
     }
 ```
 
-Using an [if...else] statement, we compare the [string] value `'/ping'` to the value of `req.url` which, as the name
+Using an [if...else] statement, we compare the [string] value `'/ping'` to the value of [req.url] which, as the name
 implies, is the requested URL path. If our web server is listening at http://localhost:8080 and someone visits the URL
 http://localhost:8080/ping then the value of `req.url` would be `'/ping'` and this condition would be true.
 
@@ -1272,6 +1272,7 @@ TODO
 [pull request]: https://git-scm.com/docs/git-request-pull
 [React]: https://reactjs.org/
 [relational database]: https://en.wikipedia.org/wiki/Relational_database
+[req.url]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#http2_request_url
 [response body]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Messages#body_2
 [response header]: https://developer.mozilla.org/en-US/docs/Glossary/Response_header
 [REST]: https://en.wikipedia.org/wiki/Representational_state_transfer
