@@ -851,7 +851,7 @@ echo > src/server.js
 ```
 
 If you are creating `server.js` using the [IDE] `File` menu, just be sure it ends up inside the `src` directory and not
-alongside it in the project folder root directory. Your project folder should look like this now:
+alongside it in the root directory. Your project folder should look like this:
 
 ```
 learn-to-code/
@@ -873,8 +873,8 @@ const host = process.env.APP_HOST || 'localhost'
 const port = process.env.APP_PORT || 8080
 
 const router = async (req, res) => {
-    let body;
-    let code;
+    let body
+    let code
 
     if ('/ping' === req.url) {
         body = {status: 'healthy'}
@@ -923,8 +923,8 @@ use the [logical OR] operator `||` to assign default values, in case the environ
 
 ```javascript
 const router = async (req, res) => {
-    let body;
-    let code;
+    let body
+    let code
 
     if ('/ping' === req.url) {
         body = {status: 'healthy'}
@@ -948,8 +948,8 @@ Our `router` function is going to serve as a request listener, meaning it will b
 (which will be created next) receives an HTTP request. 
 
 ```javascript
-    let body;
-    let code;
+    let body
+    let code
 ```
 
 The `router` function starts by declaring two variables using the [let] statement, which differs from [const] in that
