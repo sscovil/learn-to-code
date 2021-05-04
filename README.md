@@ -145,9 +145,9 @@ developers to write code more efficiently. You can write code in a plain old tex
 can build a house with a hammer and hand saw, but if you are serious about becoming a software developer you should
 learn the tools of the trade.
 
-[Visual Studio Code] is free and very popular among web developers. I personally use [IntelliJ Ultimate Edition], which
-is a bit pricey but has plugins for every programming language. [WebStorm] is made by the same company (JetBrains), but
-it only supports [JavaScript] and frameworks like [Node.js], [React], and [Vue.js].
+[Visual Studio Code] is free and very popular among web developers. I personally use [IntelliJ], which is a bit pricey
+but has plugins for every programming language. [WebStorm] is made by the same company (JetBrains), but it only supports
+[JavaScript] and frameworks like [Node.js], [React], and [Vue.js].
 
 
 ## 4. Run a [PostgreSQL] database server in a virtual machine using [Docker Compose]
@@ -640,6 +640,8 @@ Whichever method you choose, install [Node.js] v14.x which is the current Long T
 of this writing. Doing so will also automatically install Node Package Manager ([NPM]) v6.x, which will be used to
 install other libraries we will use.
 
+> **NOTE:** If you are using [WebStorm] or [IntelliJ], you will want to [enable coding assistance for Node.js].
+
 ### About version numbers
 
 You will often see software version numbers like `14.16.1`, `14.x`, or `>=14` and you may be confused by it. Most modern
@@ -829,7 +831,255 @@ Here are some ways you can mitigate dependency risk:
 
 ## 10. Build a simple [web server] and [REST] endpoint using [Node.js]
 
-TODO
+Up to this point, almost everything we have done has been to set up our local development environment and configure the
+database and tools we will use to build our application. Now we are ready to start writing some code.
+
+The first thing we will build is a simple [web server]. To keep our code organized, we will create a directory in our
+project folder called `src` (a standard abbreviation for 'source', as in [source code]).
+
+You can create the directory in your [IDE] from the `File` menu, or from the terminal using the command:
+
+```shell
+mkdir src
+```
+
+Then, inside the `src` directory, create a file called `server.js`. Again, you can do this from the [IDE] `File` menu,
+or from the terminal using:
+
+```
+echo > src/server.js
+```
+
+If you are creating `server.js` using the [IDE] `File` menu, just be sure it ends up inside the `src` directory and not
+alongside it in the project folder root directory.
+
+Open `server.js` in your [IDE] and paste in the following code:
+
+```javascript
+const http = require('http')
+
+const host = process.env.APP_HOST || 'localhost'
+const port = process.env.APP_PORT || 8080
+
+const router = async (req, res) => {
+    let body;
+    let code;
+
+    if ('/ping' === req.url) {
+        body = {status: 'healthy'}
+        code = 200
+    } else {
+        body = {error: 'Resource not found'}
+        code = 404
+    }
+
+    res.setHeader('Content-Type', 'application/json')
+    res.writeHead(code)
+    res.end(JSON.stringify(body))
+}
+
+const server = http.createServer(router)
+
+server.on('listening', () => {
+    console.log(`Server listening at http://${host}:${port}`)
+})
+
+try {
+    server.listen(port, host)
+} catch(err) {
+    console.error(err, 'Error starting server')
+}
+```
+
+There is a lot going on here, so let's break it down.
+
+```javascript
+const http = require('http')
+```
+
+At the top of the file, we import the [Node.js http] module and assign it to a constant (or [const]) variable called
+`http`. Although the module is called `http`, we could just as easily name our variable something else, like `h` or
+`foo`, and it would work the same way. Think of variable names as aliases we assign to data, [objects] or [functions].
+
+```javascript
+const host = process.env.APP_HOST || 'localhost'
+const port = process.env.APP_PORT || 8080
+```
+
+Here, we declare two more constant variables: `host` and `port`. This time, instead of importing their values from a
+module, we assign them each the value of an [environment variable] (`APP_HOST` and `APP_PORT`, respectively). We also
+use the [logical OR] operator `||` to assign default values, in case the environment variables are [undefined].
+
+```javascript
+const router = async (req, res) => {
+    let body;
+    let code;
+
+    if ('/ping' === req.url) {
+        body = {status: 'healthy'}
+        code = 200
+    } else {
+        body = {error: 'Resource not found'}
+        code = 404
+    }
+
+    res.setHeader('Content-Type', 'application/json')
+    res.writeHead(code)
+    res.end(JSON.stringify(body))
+}
+```
+
+Here, we declare a constant called `router` and define it as an [async function] (more on this later) using an
+[arrow function] expression. This function accepts two arguments, `req` and `res`, which are abbreviations for 'request'
+(an [http.IncomingMessage] object) and 'response' (an [http.ServerResponse] object).
+
+Our `router` function is going to serve as a request listener, meaning it will be called whenever our [http.Server]
+(which will be created next) receives an HTTP request. 
+
+```javascript
+    let body;
+    let code;
+```
+
+The `router` function starts by declaring two variables using the [let] statement, which differs from [const] in that
+the value of a [const] variable cannot be changed (thus it is constant). Since we will assign different values to the
+`body` and `code` variables based on [conditional logic], we declare them using [let].
+
+```javascript
+    if ('/ping' === req.url) {
+        body = {status: 'healthy'}
+        code = 200
+    } else {
+        body = {error: 'Resource not found'}
+        code = 404
+    }
+```
+
+Using an [if...else] statement, we compare the [string] value `'/ping'` to the value of `req.url` which, as the name
+implies, is the requested URL path. If our web server is listening at http://localhost:8080 and someone visits the URL
+http://localhost:8080/ping then the value of `req.url` would be `'/ping'` and this condition would be true.
+
+```javascript
+    res.setHeader('Content-Type', 'application/json')
+    res.writeHead(code)
+    res.end(JSON.stringify(body))
+```
+
+Then we call some [http.ServerResponse] functions: [setHeader], [writeHead], and [end].
+
+* `res.setHeader` is used to set the [Content-Type] response header, indicating that the [response body] will be in
+  [JSON] format.
+* `res.writeHead` sends a [response header] to the request with a 3-digit HTTP status code, like 200 (Success) or 404
+  (Not Found).
+* `res.end` send our `body` object, which we convert to a [JSON] string using [JSON.stringify], then signals to the
+  server that all response headers and body have been sent and that the server should consider this request complete.
+
+```javascript
+const server = http.createServer(router)
+```
+
+After creating a `router` function, we pass it as a request listener to the [http.createServer] function which, as you
+may have guessed, creates an [http.Server] object. We store that object in memory as a constant called `server`.
+
+```javascript
+server.on('listening', () => {
+    console.log(`Server listening at http://${host}:${port}`)
+})
+```
+
+Our `server` object is an instance of the [http.Server] class, which is a type of [EventEmitter]. This means that it
+will emit events whenever certain things happen. It also means that you can instruct `server` to listen for certain
+events and, when they occur, run a function (called an 'event handler') to take some desired action.
+
+Here we call the [server.on] function and pass it an event handler function to handle a [listening] event. When the
+server begins listening for incoming requests, it will now log a message using [console.log].
+
+```javascript
+try {
+    server.listen(port, host)
+} catch(err) {
+    console.error(err, 'Error starting server')
+}
+```
+
+Finally, we call the [server.listen] function with the `port` and `host` constants we defined earlier. Predictably, this
+function will emit a [listening] event on success, which will trigger the event handler we created above. However, if
+[server.listen] throws an error, our [try...catch] statement will catch the error and handle it by logging to the
+console using [console.error].
+
+### Run your Node.js application
+
+To run your web server, open the terminal and run the following command from your project folder:
+
+```shell
+node src/server.js
+```
+
+You should see the message from your [listening] event handler:
+
+```shell
+Server listening at http://localhost:8080
+```
+
+If you see this error instead:
+
+```shell
+events.js:292
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use 127.0.0.1:8080
+    at Server.setupListenHandle [as _listen2] (net.js:1318:16)
+    at listenInCluster (net.js:1366:12)
+    at GetAddrInfoReqWrap.doListen [as callback] (net.js:1503:7)
+    at GetAddrInfoReqWrap.onlookup [as oncomplete] (dns.js:69:8)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (net.js:1345:8)
+    at processTicksAndRejections (internal/process/task_queues.js:80:21) {
+  code: 'EADDRINUSE',
+  errno: -48,
+  syscall: 'listen',
+  address: '127.0.0.1',
+  port: 8080
+}
+```
+
+...that means some other program is already listening on port `8080`. You can stop that other program (if you know how
+and if it is safe to do so), or you can change the `port` by setting the `APP_PORT` [environment variable]:
+
+```shell
+APP_PORT=9000 node src/server.js
+```
+
+If you use Windows, which uses [PowerShell], you need to add `$env:` before the environment variable name, like this:
+
+```shell
+$env:APP_PORT=9000 node src/server.js
+```
+
+When your server is listening visit http://localhost:8080 in your web browser, and you will see:
+
+```json
+{"error":"Resource not found"}
+```
+
+This is the 404 error response we defined in the `router` that gets returned for all URL paths except `/ping`. If you
+visit http://localhost:8080/ping you should see:
+
+```json
+{"status":"healthy"}
+```
+
+Going back to the terminal, you will notice that hitting enter does not run any commands you type. This is because the
+terminal is busy running your server, similar to when you run `docker-compose up` without the `-d` flag. In order to
+get your terminal back, you need to press `CTRL+C` to stop the server.
+
+Your [IDE] should also provide ways to run (and debug) your application without using the terminal. Take some time to
+familiarize yourself with this feature. In particular, learn how the debugger works. It will become one of your most
+important tools.
+
+* [Visual Studio Code: Node.js debugging]
+* [WebStorm: Running and debugging Node.js]
 
 
 ## 11. Write unit tests using [Jest]
@@ -899,7 +1149,8 @@ TODO
 
 [Alpine Linux]: https://alpinelinux.org/
 [API]: https://en.wikipedia.org/wiki/API
-[Node.js assert]: https://nodejs.org/docs/latest-v14.x/api/all.html#assert_assert
+[arrow function]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions
+[async function]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function
 [authentication]: https://en.wikipedia.org/wiki/Authentication
 [authorization]: https://en.wikipedia.org/wiki/Authorization
 [BitBucket]: https://bitbucket.org/product
@@ -908,7 +1159,12 @@ TODO
 [clone your repo]: https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository
 [CommonJS]: https://en.wikipedia.org/wiki/CommonJS
 [CommonJS modules]: https://nodejs.org/docs/latest-v14.x/api/modules.html#modules_modules_commonjs_modules
+[conditional logic]: https://en.wikipedia.org/wiki/Conditional_(computer_programming)
 [configure an upstream remote]: https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/configuring-a-remote-for-a-fork
+[console.error]: https://developer.mozilla.org/en-US/docs/Web/API/Console/error
+[console.log]: https://developer.mozilla.org/en-US/docs/Web/API/Console/log
+[const]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/const
+[Content-Type]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
 [CREATE TABLE]: https://www.postgresql.org/docs/13/sql-createtable.html
 [CRUD]: https://en.wikipedia.org/wiki/Create,_read,_update_and_delete
 [crypto.createHash]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#crypto_crypto_createhash_algorithm_options
@@ -928,10 +1184,14 @@ TODO
 [Dockerfile]: https://docs.docker.com/engine/reference/builder/
 [ECMAScript]: https://en.wikipedia.org/wiki/ECMAScript
 [ECMAScript modules]: https://nodejs.org/docs/latest-v14.x/api/all.html#esm_modules_ecmascript_modules
+[enable coding assistance for Node.js]: https://www.jetbrains.com/help/webstorm/configuring-javascript-libraries.html#ws_js_libraries_node_js_core
+[end]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#http_response_end_data_encoding_callback
 [environment variable]: https://en.wikipedia.org/wiki/Environment_variable
+[EventEmitter]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#events_class_eventemitter
 [export]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export
 [fs.readFile]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#fs_fs_readfile_path_options_callback
 [fork this repo]: https://docs.github.com/en/github/getting-started-with-github/fork-a-repo
+[functions]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Functions
 [Git]: https://git-scm.com/
 [git add]: https://git-scm.com/docs/git-add
 [git commit]: https://git-scm.com/docs/git-commit
@@ -946,7 +1206,13 @@ TODO
 [HTML]: https://en.wikipedia.org/wiki/HTML
 [HTTP]: https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol
 [HTTP cookie]: https://en.wikipedia.org/wiki/HTTP_cookie
+[HTTP status code]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+[http.createServer]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#http_http_createserver_options_requestlistener
+[http.IncomingMessage]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#http_class_http_incomingmessage
+[http.Server]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#http_class_http_server
+[http.ServerResponse]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#http_class_http_serverresponse
 [IDE]: https://en.wikipedia.org/wiki/Integrated_development_environment
+[if...else]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/if...else
 [import]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import
 [INSERT]: https://www.postgresql.org/docs/13/sql-insert.html
 [Install Docker Desktop (MacOS)]: https://docs.docker.com/docker-for-mac/install/
@@ -954,22 +1220,28 @@ TODO
 [install Node.js]: https://nodejs.org/en/download/
 [INTEGER]: https://www.postgresql.org/docs/13/datatype-numeric.html#DATATYPE-INT
 [Integrated Terminal (VSCode)]: https://code.visualstudio.com/docs/editor/integrated-terminal
-[IntelliJ Ultimate Edition]: https://www.jetbrains.com/idea/
+[IntelliJ]: https://www.jetbrains.com/idea/
 [Jasmine]: https://jasmine.github.io/index.html
 [JavaScript]: https://en.wikipedia.org/wiki/JavaScript
 [Jest]: https://jestjs.io/docs/getting-started
 [JSON]: https://en.wikipedia.org/wiki/JSON
+[JSON.parse]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
+[JSON.stringify]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
 [JWT]: https://en.wikipedia.org/wiki/JSON_Web_Token
+[let]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let
 [libpq connection URI]: https://www.postgresql.org/docs/13/libpq-connect.html#LIBPQ-CONNSTRING
+[listening]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#net_event_listening
+[logical OR]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_OR
 [LTS]: https://en.wikipedia.org/wiki/Long-term_support
 [Mocha]: https://mochajs.org/
-[Node.js]: https://nodejs.org/dist/latest-v14.x/docs/api/index.html
-[Node.js changelog]: https://github.com/nodejs/node/blob/master/CHANGELOG.md
-[Node.js http]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#http_http
-[node_modules]: https://docs.npmjs.com/cli/v6/configuring-npm/folders#node-modules
-[node-postgres]: https://node-postgres.com/
 [Node packages]: https://docs.npmjs.com/about-packages-and-modules
 [Node Version Manager for Windows]: https://github.com/coreybutler/nvm-windows
+[Node.js]: https://nodejs.org/dist/latest-v14.x/docs/api/index.html
+[Node.js assert]: https://nodejs.org/docs/latest-v14.x/api/all.html#assert_assert
+[Node.js changelog]: https://github.com/nodejs/node/blob/master/CHANGELOG.md
+[Node.js http]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#http_http
+[node-postgres]: https://node-postgres.com/
+[node_modules]: https://docs.npmjs.com/cli/v6/configuring-npm/folders#node-modules
 [NOT NULL]: https://www.postgresql.org/docs/13/ddl-constraints.html#id-1.5.4.6.6
 [now()]: https://www.postgresql.org/docs/13/functions-datetime.html#FUNCTIONS-DATETIME-CURRENT
 [NPM]: https://www.npmjs.com/get-npm
@@ -977,30 +1249,41 @@ TODO
 [npm install]: https://docs.npmjs.com/cli/v6/commands/npm-install
 [npmjs.com]: https://www.npmjs.com/
 [NVM]: https://github.com/nvm-sh/nvm
+[objects]: https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/Basics
 [open source]: https://en.wikipedia.org/wiki/Open-source_software
 [package.json]: https://docs.npmjs.com/cli/v6/configuring-npm/package-json
 [PGWeb]: https://sosedoff.github.io/pgweb/
 [postgres:13-alpine]: https://hub.docker.com/_/postgres
 [PostgreSQL]: https://www.postgresql.org/docs/13/index.html
+[PowerShell]: https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_environment_variables?view=powershell-7.1
 [PRIMARY KEY]: https://www.postgresql.org/docs/13/ddl-constraints.html#DDL-CONSTRAINTS-PRIMARY-KEYS
 [psql]: https://www.postgresql.org/docs/13/app-psql.html
 [pull request]: https://git-scm.com/docs/git-request-pull
 [React]: https://reactjs.org/
 [relational database]: https://en.wikipedia.org/wiki/Relational_database
+[response body]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Messages#body_2
+[response header]: https://developer.mozilla.org/en-US/docs/Glossary/Response_header
 [REST]: https://en.wikipedia.org/wiki/Representational_state_transfer
 [RTFM]: https://en.wikipedia.org/wiki/RTFM
 [semantic versioning]: https://docs.npmjs.com/about-semantic-versioning
 [sequence generator]: https://www.postgresql.org/docs/13/sql-createsequence.html
 [SERIAL]: https://www.postgresql.org/docs/13/datatype-numeric.html#DATATYPE-SERIAL
+[server.on]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#events_emitter_on_eventname_listener
+[server.listen]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#net_server_listen
 [session management]: https://en.wikipedia.org/wiki/Session_(computer_science)#Session_management
+[setHeader]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#http_response_setheader_name_value
 [setting up Git]: https://docs.github.com/en/github/getting-started-with-github/set-up-git#setting-up-git
 [shell]: https://en.wikipedia.org/wiki/Shell_(computing)
 [sosedoff/pgweb]: https://hub.docker.com/r/sosedoff/pgweb/
+[source code]: https://en.wikipedia.org/wiki/Source_code
 [SQL]: https://en.wikipedia.org/wiki/SQL
+[string]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
 [Terminal Emulator (WebStorm)]: https://www.jetbrains.com/help/webstorm/terminal-emulator.html
 [TEXT]: https://www.postgresql.org/docs/13/datatype-character.html
 [TIMESTAMP]: https://www.postgresql.org/docs/13/datatype-datetime.html
 [trigger function]: https://www.postgresql.org/docs/13/plpgsql-trigger.html
+[try...catch]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
+[undefined]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined
 [UNIQUE]: https://www.postgresql.org/docs/13/ddl-constraints.html#DDL-CONSTRAINTS-UNIQUE-CONSTRAINTS
 [UPDATE]: https://www.postgresql.org/docs/13/sql-update.html
 [user registration]: https://en.wikipedia.org/wiki/Registered_user
@@ -1008,7 +1291,10 @@ TODO
 [VCS]: https://en.wikipedia.org/wiki/Version_control
 [virtual machine]: https://en.wikipedia.org/wiki/Virtual_machine
 [Visual Studio Code]: https://code.visualstudio.com/
+[Visual Studio Code: Node.js debugging]: https://code.visualstudio.com/docs/nodejs/nodejs-debugging
 [Vue.js]: https://vuejs.org/
 [web server]: https://en.wikipedia.org/wiki/Web_server
 [WebStorm]: https://www.jetbrains.com/webstorm/
+[WebStorm: Running and debugging Node.js]: https://www.jetbrains.com/help/webstorm/running-and-debugging-node-js.html
+[writeHead]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#http_response_writehead_statuscode_statusmessage_headers
 [YAML]: https://en.wikipedia.org/wiki/YAML
