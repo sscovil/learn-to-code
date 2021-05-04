@@ -851,7 +851,18 @@ echo > src/server.js
 ```
 
 If you are creating `server.js` using the [IDE] `File` menu, just be sure it ends up inside the `src` directory and not
-alongside it in the project folder root directory.
+alongside it in the project folder root directory. Your project folder should look like this now:
+
+```
+learn-to-code/
+├─ node_modules/
+├─ src/
+│  └─ server.js
+├─ .gitignore
+├─ package.json
+├─ package-lock.json
+└─ README.md
+```
 
 Open `server.js` in your [IDE] and paste in the following code:
 
