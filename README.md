@@ -735,9 +735,96 @@ same thing. The correct format to use is determined by the software that will re
 [YAML], but most [JavaScript] applications use [JSON].
 
 
-## 9. Install a package as a development dependency using [NPM]
+## 9. Install a package as a dependency using [NPM]
 
-TODO
+Now that we have initialized our [Node.js] application with a [package.json] file, we can install [dependencies]. A
+dependency is a piece of software, usually written and maintained by someone else, that your code requires in order to
+function in some way.
+
+You can find libraries on [npmjs.com] that do just about everything, but anyone with an Internet connection and a pulse
+can create and publish [Node packages] so you should be very selective about the packages you incorporate into your
+project.
+
+In general, you should:
+
+* only add dependencies that provide functionality you absolutely need
+* only choose packages that are actively maintained by professionals
+* avoid dependencies for trivial code that is easy to write and maintain
+
+One good example of a dependency you should include in your project is a testing framework like [Jest], [Mocha], or
+[Jasmine]. You could test your code without a framework, using the built-in [Node.js assert] library or whatever, but
+you will quickly find yourself spending more time writing complicated test functions than actual code or, worse, not
+writing tests at all.
+
+I highly recommend using [Jest] because it requires no configuration, offers a lot of really useful features, and is
+actively maintained by Facebook and a huge community of contributors.
+
+Let's install [Jest] as a development dependency. In the terminal, from the project folder, run:
+
+```shell
+npm install -D jest
+```
+
+The `-D` flag indicates that this is a _development dependency_, meaning it is not required to run the application in
+production. Normally, you set up your code deployment pipeline so that tests are run automatically and must pass before
+any code is deployed to production.
+
+If you open your [package.json] file, you should see a `devDependencies` section has been added to the bottom:
+
+```json
+{
+  "name": "learn-to-code",
+  "version": "1.0.0",
+  "description": "A crash course on full-stack software development with Docker, PostgreSQL, Node.js & React",
+  "type": "module",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sscovil/learn-to-code.git"
+  },
+  "keywords": [
+    "docker",
+    "postgres",
+    "node",
+    "react",
+    "tutorial"
+  ],
+  "author": "Shaun Scovil <sscovil@gmail.com>",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/sscovil/learn-to-code/issues"
+  },
+  "homepage": "https://github.com/sscovil/learn-to-code#readme",
+  "devDependencies": {
+    "jest": "^26.6.3"
+  }
+}
+```
+
+The `^` before the version number means that any `minor` or `patch` release greater than the version specified is
+acceptable. See the [About version numbers](#about-version-numbers) section above for more about [semantic versioning].
+
+You will also notice a new directory in your project folder called [node_modules]. If you look inside that directory,
+you may be shocked to see an insane number of subdirectories, despite you having only installed one single dependency.
+This is because [Jest] itself has dependencies, and many of those packages have dependencies, and so on. This is why
+we need a package manager like [NPM] to manage downloading these things for us.
+
+If you were paying attention earlier, you will recall that I said "you should be very selective about the packages you
+incorporate into your project." Any package you include is a potential bug or security vulnerability you may be exposed
+to. Of course, your own code is subject to those same risks, and an open source project actively maintained by a
+community of developers is arguably more resilient than a library you build by yourself.
+
+Here are some ways you can mitigate dependency risk:
+
+* Run [npm audit] to scan your project for vulnerabilities & automatically install compatible updates
+* Set up [GitHub Dependabot] to scan your repository for known security vulnerabilities
+* Keep your code up to date and pay attention to release schedules for any packages you rely on
 
 
 ## 10. Build a simple [web server] and [REST] endpoint using [Node.js]
@@ -812,12 +899,15 @@ TODO
 
 [Alpine Linux]: https://alpinelinux.org/
 [API]: https://en.wikipedia.org/wiki/API
+[Node.js assert]: https://nodejs.org/docs/latest-v14.x/api/all.html#assert_assert
 [authentication]: https://en.wikipedia.org/wiki/Authentication
 [authorization]: https://en.wikipedia.org/wiki/Authorization
 [BitBucket]: https://bitbucket.org/product
 [changelog]: https://en.wikipedia.org/wiki/Changelog
 [CLI]: https://en.wikipedia.org/wiki/Command-line_interface
 [clone your repo]: https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository
+[CommonJS]: https://en.wikipedia.org/wiki/CommonJS
+[CommonJS modules]: https://nodejs.org/docs/latest-v14.x/api/modules.html#modules_modules_commonjs_modules
 [configure an upstream remote]: https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/configuring-a-remote-for-a-fork
 [CREATE TABLE]: https://www.postgresql.org/docs/13/sql-createtable.html
 [CRUD]: https://en.wikipedia.org/wiki/Create,_read,_update_and_delete
@@ -827,6 +917,7 @@ TODO
 [database migration]: https://en.wikipedia.org/wiki/Schema_migration
 [DEFAULT]: https://www.postgresql.org/docs/13/ddl-default.html
 [DELETE]: https://www.postgresql.org/docs/13/sql-delete.html
+[dependencies]: https://docs.npmjs.com/cli/v6/configuring-npm/package-json#dependencies
 [Docker]: https://www.docker.com/get-started
 [docker-compose]: https://docs.docker.com/compose/reference/
 [docker-compose environment config]: https://docs.docker.com/compose/compose-file/compose-file-v3/#environment
@@ -835,7 +926,10 @@ TODO
 [Docker Compose]: https://docs.docker.com/compose/
 [Docker Desktop]: https://www.docker.com/products/docker-desktop
 [Dockerfile]: https://docs.docker.com/engine/reference/builder/
+[ECMAScript]: https://en.wikipedia.org/wiki/ECMAScript
+[ECMAScript modules]: https://nodejs.org/docs/latest-v14.x/api/all.html#esm_modules_ecmascript_modules
 [environment variable]: https://en.wikipedia.org/wiki/Environment_variable
+[export]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export
 [fs.readFile]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#fs_fs_readfile_path_options_callback
 [fork this repo]: https://docs.github.com/en/github/getting-started-with-github/fork-a-repo
 [Git]: https://git-scm.com/
@@ -845,6 +939,7 @@ TODO
 [git pull]: https://git-scm.com/docs/git-pull
 [git push]: https://git-scm.com/docs/git-push
 [GitHub]: https://docs.github.com/en/github/getting-started-with-github/quickstart
+[GitHub Dependabot]: https://docs.github.com/en/code-security/supply-chain-security/configuring-dependabot-security-updates
 [GitLab]: https://about.gitlab.com/
 [GUI]: https://en.wikipedia.org/wiki/Graphical_user_interface
 [hash]: https://en.wikipedia.org/wiki/Cryptographic_hash_function
@@ -852,6 +947,7 @@ TODO
 [HTTP]: https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol
 [HTTP cookie]: https://en.wikipedia.org/wiki/HTTP_cookie
 [IDE]: https://en.wikipedia.org/wiki/Integrated_development_environment
+[import]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import
 [INSERT]: https://www.postgresql.org/docs/13/sql-insert.html
 [Install Docker Desktop (MacOS)]: https://docs.docker.com/docker-for-mac/install/
 [Install Docker Desktop (Windows)]: https://docs.docker.com/docker-for-windows/install/
@@ -859,21 +955,26 @@ TODO
 [INTEGER]: https://www.postgresql.org/docs/13/datatype-numeric.html#DATATYPE-INT
 [Integrated Terminal (VSCode)]: https://code.visualstudio.com/docs/editor/integrated-terminal
 [IntelliJ Ultimate Edition]: https://www.jetbrains.com/idea/
+[Jasmine]: https://jasmine.github.io/index.html
 [JavaScript]: https://en.wikipedia.org/wiki/JavaScript
 [Jest]: https://jestjs.io/docs/getting-started
 [JSON]: https://en.wikipedia.org/wiki/JSON
 [JWT]: https://en.wikipedia.org/wiki/JSON_Web_Token
 [libpq connection URI]: https://www.postgresql.org/docs/13/libpq-connect.html#LIBPQ-CONNSTRING
 [LTS]: https://en.wikipedia.org/wiki/Long-term_support
+[Mocha]: https://mochajs.org/
 [Node.js]: https://nodejs.org/dist/latest-v14.x/docs/api/index.html
 [Node.js changelog]: https://github.com/nodejs/node/blob/master/CHANGELOG.md
 [Node.js http]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#http_http
+[node_modules]: https://docs.npmjs.com/cli/v6/configuring-npm/folders#node-modules
 [node-postgres]: https://node-postgres.com/
+[Node packages]: https://docs.npmjs.com/about-packages-and-modules
 [Node Version Manager for Windows]: https://github.com/coreybutler/nvm-windows
 [NOT NULL]: https://www.postgresql.org/docs/13/ddl-constraints.html#id-1.5.4.6.6
 [now()]: https://www.postgresql.org/docs/13/functions-datetime.html#FUNCTIONS-DATETIME-CURRENT
 [NPM]: https://www.npmjs.com/get-npm
-[npm install]: https://docs.npmjs.com/cli/v7/commands/npm-install
+[npm audit]: https://docs.npmjs.com/cli/v6/commands/npm-audit
+[npm install]: https://docs.npmjs.com/cli/v6/commands/npm-install
 [npmjs.com]: https://www.npmjs.com/
 [NVM]: https://github.com/nvm-sh/nvm
 [open source]: https://en.wikipedia.org/wiki/Open-source_software
@@ -888,7 +989,7 @@ TODO
 [relational database]: https://en.wikipedia.org/wiki/Relational_database
 [REST]: https://en.wikipedia.org/wiki/Representational_state_transfer
 [RTFM]: https://en.wikipedia.org/wiki/RTFM
-[semantic versioning]: https://semver.org/
+[semantic versioning]: https://docs.npmjs.com/about-semantic-versioning
 [sequence generator]: https://www.postgresql.org/docs/13/sql-createsequence.html
 [SERIAL]: https://www.postgresql.org/docs/13/datatype-numeric.html#DATATYPE-SERIAL
 [session management]: https://en.wikipedia.org/wiki/Session_(computer_science)#Session_management
