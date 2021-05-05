@@ -104,9 +104,10 @@ those changes up to your `origin` copy to keep it in sync with your `local` copy
 > you to go back to previous versions of your code. Throughout this lesson, try and remember to commit your changes and
 > push them up to your `origin` copy to keep it in sync.
 
-From there, you can create a [pull request] to the original `upstream` copy and, if the owner or maintainer of that
-repo approves, they will [git merge] your changes (or grant you permission to do so) and, at that point, all three
-copies will be up to date.
+When you make changes to your repo, you can create a [pull request] to the original `upstream` copy and, if the owner
+or maintainer of that repo approves, they will [git merge] your changes (or grant you permission to do so) and, at that
+point, all three copies will be in sync. Most [open source] projects will have some sort of guide that explains how to
+go about contributing code changes.
 
 For this project, you do not need to worry about making a [pull request]. This tutorial will be used by others, so your
 changes will never get merged into the original `upstream` copy. However, you should occasionally [git pull] from the
