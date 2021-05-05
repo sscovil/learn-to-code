@@ -909,8 +909,8 @@ const http = require('http')
 ```
 
 At the top of the file, we import the [Node.js http] module and assign it to a constant (or [const]) called `http`.
-Although the module is called 'http', we could just as easily name our variable something else, like `h` or `foo`, and
-it would work the same way. Think of variable names as aliases we assign to data, [objects] or [functions].
+Although the module is called 'http', we could just as easily name our constant something else, like `h` or `foo`, and
+it would work the same way. Think of these names as aliases we assign to data, [objects] or [functions].
 
 ```javascript
 const host = process.env.APP_HOST || 'localhost'
@@ -944,8 +944,7 @@ Here, we declare a constant called `router` and define it as an [async function]
 [arrow function] expression. This function accepts two arguments, `req` and `res`, which are abbreviations for 'request'
 (an [http.IncomingMessage] object) and 'response' (an [http.ServerResponse] object).
 
-Our `router` function is going to serve as a request listener, meaning it will be called whenever our [http.Server]
-(which will be created next) receives an HTTP request. 
+Let's examine the code inside the `router` function...
 
 ```javascript
     let body
@@ -985,12 +984,19 @@ Then we call some [http.ServerResponse] functions: [setHeader], [writeHead], and
 * `res.end` send our `body` object, which we convert to a [JSON] string using [JSON.stringify], then signals to the
   server that all response headers and body have been sent and that the server should consider this request complete.
 
+The `router` function will serve as a request listener, meaning it will be called whenever our [http.Server] receives
+an HTTP request.
+
 ```javascript
 const server = http.createServer(router)
 ```
 
-After creating a `router` function, we pass it as a request listener to the [http.createServer] function which, as you
-may have guessed, creates an [http.Server] object. We store that object in memory as a constant called `server`.
+Here, we pass the `router` function as a request listener to the [http.createServer] function which, as you may have
+guessed, creates an [http.Server] object. We assign that object to a constant called `server`.
+
+Our `server` object is an instance of the [http.Server] class, which is a type of [EventEmitter]. This means that it
+will emit events whenever certain things happen. It also means that you can instruct `server` to listen for certain
+events and, when they occur, run a function (called an 'event handler') to perform a desired action.
 
 ```javascript
 server.on('listening', () => {
@@ -998,12 +1004,9 @@ server.on('listening', () => {
 })
 ```
 
-Our `server` object is an instance of the [http.Server] class, which is a type of [EventEmitter]. This means that it
-will emit events whenever certain things happen. It also means that you can instruct `server` to listen for certain
-events and, when they occur, run a function (called an 'event handler') to take some desired action.
-
-Here we call the [server.on] function and pass it an event handler function to handle a [listening] event. When the
-server begins listening for incoming requests, it will now log a message using [console.log].
+Here we call the [server.on] function and pass it an event handler. When the server begins listening for incoming
+requests, it emits a [listening] event that triggers our event handler, which then calls [console.log] and logs a
+message informing us that the server is ready.
 
 ```javascript
 try {
@@ -1013,10 +1016,9 @@ try {
 }
 ```
 
-Finally, we call the [server.listen] function with the `port` and `host` constants we defined earlier. Predictably, this
-function will emit a [listening] event on success, which will trigger the event handler we created above. However, if
-[server.listen] throws an error, our [try...catch] statement will catch the error and handle it by logging to the
-console using [console.error].
+Finally, we call the [server.listen] function with the `port` and `host` constants we defined earlier. If successful,
+it will emit the [listening] event and trigger our event handler. However, if it throws an error, our [try...catch]
+statement will catch the error and call [console.error] to log the error details to inform us what went wrong.
 
 ### Run your Node.js application
 
@@ -1026,7 +1028,7 @@ To run your web server, open the terminal and run the following command from you
 node src/server.js
 ```
 
-You should see the message from your [listening] event handler:
+You should see the success message from your [listening] event handler:
 
 ```shell
 Server listening at http://localhost:8080
@@ -1035,10 +1037,6 @@ Server listening at http://localhost:8080
 If you see this error instead:
 
 ```shell
-events.js:292
-      throw er; // Unhandled 'error' event
-      ^
-
 Error: listen EADDRINUSE: address already in use 127.0.0.1:8080
     at Server.setupListenHandle [as _listen2] (net.js:1318:16)
     at listenInCluster (net.js:1366:12)
@@ -1055,37 +1053,42 @@ Emitted 'error' event on Server instance at:
 }
 ```
 
-...that means some other program is already listening on port `8080`. You can stop that other program (if you know how
+...that means some other program is already listening on port `8080`. You can stop the other program (if you know how
 and if it is safe to do so), or you can change the `port` by setting the `APP_PORT` [environment variable]:
 
 ```shell
 APP_PORT=9000 node src/server.js
 ```
 
-If you use Windows, which uses [PowerShell], you need to add `$env:` before the environment variable name, like this:
+On Windows, which uses [PowerShell], you need to add `$env:` before the environment variable name:
 
 ```shell
 $env:APP_PORT=9000 node src/server.js
 ```
 
-When your server is listening visit http://localhost:8080 in your web browser, and you will see:
+When your server is listening, visit http://localhost:8080 in your web browser. You will see:
 
 ```json
 {"error":"Resource not found"}
 ```
 
-This is the 404 error response we defined in the `router` that gets returned for all URL paths except `/ping`. If you
-visit http://localhost:8080/ping you should see:
+This is the `404` error response we defined in the `router` that gets returned for all URL paths except `/ping`.
+
+If you visit http://localhost:8080/ping you will see:
 
 ```json
 {"status":"healthy"}
 ```
 
+Congratulations! You just built a [web server]. Pretty soon, we'll make it do something useful.
+
+### Running and debugging Node.js in your IDE
+
 Going back to the terminal, you will notice that hitting enter does not run any commands you type. This is because the
 terminal is busy running your server, similar to when you run `docker-compose up` without the `-d` flag. In order to
 get your terminal back, you need to press `CTRL+C` to stop the server.
 
-Your [IDE] should also provide ways to run (and debug) your application without using the terminal. Take some time to
+Your [IDE] also provides a way to run (and debug) your application without using the terminal. Take some time to
 familiarize yourself with this feature. In particular, learn how the debugger works. It will become one of your most
 important tools.
 
