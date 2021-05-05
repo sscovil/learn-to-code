@@ -979,8 +979,8 @@ Then we call some [http.ServerResponse] functions: [setHeader], [writeHead], and
 
 * `res.setHeader` is used to set the [Content-Type] response header, indicating that the [response body] will be in
   [JSON] format.
-* `res.writeHead` sends a [response header] to the request with a 3-digit HTTP status code, like 200 (Success) or 404
-  (Not Found).
+* `res.writeHead` sends a [response header] to the request with a 3-digit HTTP status code, like `200` (Success) or 
+  `404` (Not Found).
 * `res.end` send our `body` object, which we convert to a [JSON] string using [JSON.stringify], then signals to the
   server that all response headers and body have been sent and that the server should consider this request complete.
 
@@ -1018,7 +1018,7 @@ try {
 
 Finally, we call the [server.listen] function with the `port` and `host` constants we defined earlier. If successful,
 it will emit the [listening] event and trigger our event handler. However, if it throws an error, our [try...catch]
-statement will catch the error and call [console.error] to log the error details to inform us what went wrong.
+statement will catch the error and call [console.error] to log the error details and inform us what went wrong.
 
 ### Run your Node.js application
 
@@ -1098,7 +1098,540 @@ important tools.
 
 ## 11. Write unit tests using [Jest]
 
-TODO
+After we created a web server, we opened a web browser and tested it by visiting http://localhost:8080 and
+http://localhost:8080/ping. Why did we do that?
+
+We did it because we wanted to be sure our code worked.
+
+The way we did it is known as [manual testing]. It is very unreliable and inefficient. It is unreliable because it
+requires humans and humans are inconsistent. It is inefficient because it requires humans and humans are slow. Humans
+are the common denominator here. Machines are way better at this sort of thing. If you disagree, software development
+might not be the best career choice for you. :-)
+
+Let's write some automated tests, so we can deploy our code with confidence (and without those pesky humans).
+
+First, make sure you have installed [Jest] using `npm install -D jest` and add or modify the test script in your
+[package.json] file so that it runs the `jest` command:
+
+```json
+{
+  "name": "learn-to-code",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^26.6.3"
+  }
+}
+```
+
+In the `src` directory, alongside `server.js`, create a new file called `server.test.js`. Your project folder should
+now look like this:
+
+```
+learn-to-code/
+├─ node_modules/
+├─ src/
+│  ├─ server.js
+│  └─ server.test.js
+├─ .gitignore
+├─ package.json
+├─ package-lock.json
+└─ README.md
+```
+
+Open `server.test.js` and paste in the following code:
+
+```javascript
+describe('router', () => {
+  test('is a function', () => {
+    expect(typeof router === 'function').toBe(true)
+  })
+})
+```
+
+Now open your terminal and run:
+
+```shell
+npm test
+```
+
+You should see something like this:
+
+```shell
+> learn-to-code@1.0.0 test /path/to/repo/learn-to-code
+> jest
+
+ FAIL  src/server.test.js
+  router
+    ✕ is a function (2 ms)
+
+  ● router › is a function
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      1 | test('is a function', () => {
+    > 2 |     expect(typeof router === 'function').toBe(true)
+        |                                          ^
+      3 | })
+      4 |
+
+      at Object.<anonymous> (src/server.test.js:2:42)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 1 total
+Snapshots:   0 total
+Time:        0.608 s
+Ran all test suites.
+npm ERR! Test failed.  See above for more details.
+```
+
+This means our testing framework is working, but our test is failing. It is failing because `router` is undefined,
+because we did not import it from `server.js`.
+
+Add the following line to the top of `server.test.js`:
+
+```javascript
+const router = require('./server')
+```
+
+Then open `server.js` and add the following line to the bottom of the file:
+
+```javascript
+module.exports = router
+```
+
+Now our `server.js` module exports the `router` function, and our `server.test.js` module imports it.
+
+Running `npm test` again, you should see something like this:
+
+```shell
+> learn-to-code@1.0.0 test /path/to/repo/learn-to-code
+> jest
+
+ PASS  src/server.test.js
+  router
+    ✓ is a function (1 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       1 passed, 1 total
+Snapshots:   0 total
+Time:        0.611 s, estimated 1 s
+Ran all test suites.
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "Server listening at http://localhost:8080".
+
+      27 | })
+      28 |
+    > 29 | try {
+         |           ^
+      30 |     server.listen(port, host)
+      31 | } catch(err) {
+      32 |     console.error(err, 'Error starting server')
+
+      at console.log (node_modules/@jest/console/build/CustomConsole.js:185:10)
+      at Server.<anonymous> (src/server.js:29:11)
+
+Jest did not exit one second after the test run has completed.
+
+This usually means that there are asynchronous operations that weren't stopped in your tests. Consider running Jest with `--detectOpenHandles` to troubleshoot this issue.
+```
+
+This time, our test passed. However, when we imported `server.js` all of the code in that module got executed, including
+the bit that starts the web server. [Jest] ran the tests but could not exit, and the server is still running.
+
+Hit `CTRL+C` to stop the server and get your terminal back.
+
+In order to fix this, we are going to have to [refactor] `server.js`. We still want it to start listening when we run
+it, but we also need to make sure it is testable. One way to do that is to change this:
+
+```javascript
+try {
+    server.listen(port, host)
+} catch(err) {
+    console.error(err, 'Error starting server')
+}
+```
+
+...to this:
+
+```javascript
+if (require.main === module) {
+    try {
+        server.listen(port, host)
+    } catch(err) {
+        console.error(err, 'Error starting server')
+    }
+}
+```
+
+By wrapping the code that starts the server in [conditional logic] that checks if `server.js` is the [main module], we
+can ensure it is only executed when `node src/server.js` is run and not when `server.js` is imported by another module.
+
+Now when you run `npm test`, you should see:
+
+```shell
+> learn-to-code@1.0.0 test /path/to/repo/learn-to-code
+> jest
+
+ PASS  src/server.test.js
+  router
+    ✓ is a function (1 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       1 passed, 1 total
+Snapshots:   0 total
+Time:        0.61 s, estimated 1 s
+Ran all test suites.
+```
+
+### Add code coverage
+
+Any non-trivial piece of software will have several code paths. Every [if...else] statement creates a fork in the road,
+where one path becomes two. As the code becomes more complex, two becomes four, four becomes eight, and so on. At some
+stage, [manual testing] of all possible code paths becomes infeasible.
+
+Automated tests, on the other hand, can be used to maintain high [code coverage] as complexity increases, reducing the
+risk of [bugs] going undetected. Well-written tests can also serve as a form of documentation, explaining by example
+how the software is intended to work.
+
+Let's add some more tests. We can go through them in detail and learn a lot along the way.
+
+```javascript
+const http = require('http')
+
+const router = require('./server')
+
+describe('router', () => {
+  let req
+  let res
+
+  beforeEach(() => {
+    req = new http.IncomingMessage(undefined)
+    res = new http.ServerResponse(req)
+    res.setHeader = jest.fn()
+    res.writeHead = jest.fn()
+    res.end = jest.fn()
+  })
+
+  test('is a function', () => {
+    expect(typeof router === 'function').toBe(true)
+  })
+
+  describe('receives a request for an unsupported URL path', () => {
+    beforeEach(() => {
+      req.url = '/invalid-url-path'
+    })
+
+    test('sets Content-Type header', async () => {
+      await router(req, res)
+      expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'application/json')
+    })
+
+    test('responds with 404 status code', async () => {
+      await router(req, res)
+      expect(res.writeHead).toHaveBeenCalledWith(404)
+    })
+
+    test('responds with a JSON string in the body', async () => {
+      await router(req, res)
+      expect(res.end).toHaveBeenCalledWith(JSON.stringify({error: 'Resource not found'}))
+    })
+  })
+
+  describe('receives a request for /ping', () => {
+    beforeEach(() => {
+      req.url = '/ping'
+    })
+
+    test('sets Content-Type header', async () => {
+      await router(req, res)
+      expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'application/json')
+    })
+
+    test('responds with 200 status code', async () => {
+      await router(req, res)
+      expect(res.writeHead).toHaveBeenCalledWith(200)
+    })
+
+    test('responds with a JSON string in the body', async () => {
+      await router(req, res)
+      expect(res.end).toHaveBeenCalledWith(JSON.stringify({status: 'healthy'}))
+    })
+  })
+})
+```
+
+There is a lot to unpack here. You should familiarize yourself with the various [Jest setup and teardown] functions,
+but for now just know that `describe` gives us a way to group tests together in the same [scope], and any function you
+pass to `beforeEach` gets called before each test is run.
+
+```javascript
+const http = require('http')
+
+const router = require('./server')
+
+describe('router', () => {
+  let req
+  let res
+
+  beforeEach(() => {
+    req = new http.IncomingMessage(undefined)
+    res = new http.ServerResponse(req)
+    res.setHeader = jest.fn()
+    res.writeHead = jest.fn()
+    res.end = jest.fn()
+  })
+```
+
+First, we import the [Node.js http] module to create [http.IncomingMessage] and [http.ServerResponse] objects that we
+can pass to our `router` function. Then we use [jest.fn] to replace `res.setHeader`, `res.writeHead`, and `res.end`
+with mock functions, so we can observe how they get used.
+
+```javascript
+  describe('receives a request for an unsupported URL path', () => {
+    beforeEach(() => {
+      req.url = '/invalid-url-path'
+    })
+
+    test('sets Content-Type header', async () => {
+      await router(req, res)
+      expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'application/json')
+    })
+
+    test('responds with 404 status code', async () => {
+      await router(req, res)
+      expect(res.writeHead).toHaveBeenCalledWith(404)
+    })
+
+    test('responds with a JSON string in the body', async () => {
+      await router(req, res)
+      expect(res.end).toHaveBeenCalledWith(JSON.stringify({error: 'Resource not found'}))
+    })
+  })
+```
+
+This group of tests is wrapped in another `describe` function that is nested inside the outer `describe`. That means
+the `beforeEach` function in the [scope] of the outer `describe` will be run first, followed by the `beforeEach`
+function in the [scope] of the inner `describe`, then finally the test function will be run.
+
+Each test is an [async function] that calls `router` and awaits a response. The [await] operator is necessary because
+we defined our `router` as an [async function] and, as such, it returns a [Promise] right away but does not actually
+execute the code within the function yet. If we did not use the [await] operator when calling our `router` function,
+the test would finish running before the code inside the `router` function ever had a chance to execute and, as a
+result, our tests would fail.
+
+If you are wondering why we defined our `router` as an [async function], you are asking a very good question. In fact,
+in its current state, `router` does not need to be asynchronous. The reason we defined it that way is that it will
+eventually call out to other services like [PostgreSQL] and, when it does, it will need to wait some amount of time for
+a response.
+
+```javascript
+  describe('receives a request for /ping', () => {
+    beforeEach(() => {
+      req.url = '/ping'
+    })
+
+    test('sets Content-Type header', async () => {
+      await router(req, res)
+      expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'application/json')
+    })
+
+    test('responds with 200 status code', async () => {
+      await router(req, res)
+      expect(res.writeHead).toHaveBeenCalledWith(200)
+    })
+
+    test('responds with a JSON string in the body', async () => {
+      await router(req, res)
+      expect(res.end).toHaveBeenCalledWith(JSON.stringify({status: 'healthy'}))
+    })
+  })
+```
+
+The second group of tests is similar to the first, except that it tests the `/ping` route whereas the first group tests
+how the router handles an unrecognized route. In other words, this group of tests focuses on the `if` code path, and
+the other focuses on the `else` code path, when looking back at the `router` logic:
+
+```javascript
+    if ('/ping' === req.url) {
+        body = {status: 'healthy'}
+        code = 200
+    } else {
+        body = {error: 'Resource not found'}
+        code = 404
+    }
+```
+
+The last thing we should touch on is the [Jest expect] function. In most of these tests, we call `expect` with a mock
+function created in the outer `beforeEach` function using [jest.fn]:
+
+```javascript
+  beforeEach(() => {
+    req = new http.IncomingMessage(undefined)
+    res = new http.ServerResponse(req)
+    res.setHeader = jest.fn()
+    res.writeHead = jest.fn()
+    res.end = jest.fn()
+  })
+```
+
+When we call `router` in these tests, we pass it that `res` object with the mocked functions. This allows us to use
+[toHaveBeenCalledWith] to assert that `router` called those functions and passed them the arguments we expect.
+
+### Make router a separate module
+
+Our `router` function is a well-defined unit of code that could easily be factored out of `server.js` as a separate
+module. This is a good idea because, as our application grows over time, this function will grow to handle more routes.
+Also, it would make a lot more sense if `server.js` exported its `server` object.
+
+Create a new file in the `src` directory called `router.js`, then rename `server.test.js` to `router.test.js` and
+create a new empty file called `server.test.js`. When you are done, your tests should all be in `router.test.js` and
+your project folder should look like this:
+
+```
+learn-to-code/
+├─ node_modules/
+├─ src/
+│  ├─ router.js
+│  ├─ router.test.js
+│  ├─ server.js
+│  └─ server.test.js
+├─ .gitignore
+├─ package.json
+├─ package-lock.json
+└─ README.md
+```
+
+Now cut the code that defines `router` out of `server.js` and paste it into `router.js`. Be sure to export `router` at
+the bottom of the file. It should look like this when you are done:
+
+```javascript
+const router = async (req, res) => {
+    let body;
+    let code;
+
+    if ('/ping' === req.url) {
+        body = {status: 'healthy'}
+        code = 200
+    } else {
+        body = {error: 'Resource not found'}
+        code = 404
+    }
+
+    res.setHeader('Content-Type', 'application/json')
+    res.writeHead(code)
+    res.end(JSON.stringify(body))
+}
+
+module.exports = router
+```
+
+We also need to update `router.test.js` to import `router` from the correct file:
+
+```javascript
+const router = require('./router')
+```
+
+In `server.js`, we can import `router` from `./router.js`. We should also make `server.js` export `server` so we can
+write tests for our web server. In the end, it should look like this:
+
+```javascript
+const http = require('http')
+
+const router = require('./router')
+
+const host = process.env.APP_HOST || 'localhost'
+const port = process.env.APP_PORT || 8080
+
+const server = http.createServer(router)
+
+server.on('listening', () => {
+    console.log(`Server listening at http://${host}:${port}`)
+})
+
+if (require.main === module) {
+    try {
+        server.listen(port, host)
+    } catch(err) {
+        console.error(err, 'Error starting server')
+    }
+}
+
+module.exports = server
+```
+
+Now we can add some tests to `server.test.js`:
+
+```javascript
+const server = require('./server')
+
+describe('server', () => {
+  let consoleLog
+
+  beforeEach(() => {
+    consoleLog = jest.spyOn(console, 'log')
+    consoleLog.mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    consoleLog.mockRestore()
+  })
+
+  test('logs to the console on listening event', (done) => {
+    const host = process.env.APP_HOST || 'localhost'
+    const port = process.env.APP_PORT || 8080
+
+    server.on('listening', () => {
+      expect(consoleLog).toHaveBeenCalledWith(`Server listening at http://${host}:${port}`)
+      done()
+    })
+    server.emit('listening')
+  })
+})
+```
+
+There are a couple of things to note here...
+
+```javascript
+  beforeEach(() => {
+    consoleLog = jest.spyOn(console, 'log')
+    consoleLog.mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    consoleLog.mockRestore()
+  })
+```
+
+Instead of creating a mock function using [jest.fn], we are modifying the existing global function [console.log] using
+[jest.spyOn] so we can tell when it has been called. We are also using [mockImplementation] to prevent it from logging
+to the console during our test by temporarily replacing it with a function that does nothing. We are then restoring it
+back to its original form after each test is run, by calling [mockRestore] in the `afterEach` function.
+
+```javascript
+  test('logs to the console on listening event', (done) => {
+    const host = process.env.APP_HOST || 'localhost'
+    const port = process.env.APP_PORT || 8080
+
+    server.on('listening', () => {
+      expect(consoleLog).toHaveBeenCalledWith(`Server listening at http://${host}:${port}`)
+      done()
+    })
+    server.emit('listening')
+  })
+```
+
+Here, we are using the `done` function that is passed as an argument to our test function. This is necessary because
+we need to wait for an event handler to be called and, like an [async function], the logic inside the event handler
+normally would not execute before we reached the end of the test function.
+
+Take some time to learn more about [testing asynchronous code]. We will be writing a lot of it.
 
 
 ## 12. Create a Linux web server using [Docker] & [Docker Compose]
@@ -1167,10 +1700,13 @@ TODO
 [async function]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function
 [authentication]: https://en.wikipedia.org/wiki/Authentication
 [authorization]: https://en.wikipedia.org/wiki/Authorization
+[await]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await
 [BitBucket]: https://bitbucket.org/product
+[bugs]: https://en.wikipedia.org/wiki/Software_bug
 [changelog]: https://en.wikipedia.org/wiki/Changelog
 [CLI]: https://en.wikipedia.org/wiki/Command-line_interface
 [clone your repo]: https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository
+[code coverage]: https://en.wikipedia.org/wiki/Code_coverage
 [CommonJS]: https://en.wikipedia.org/wiki/CommonJS
 [CommonJS modules]: https://nodejs.org/docs/latest-v14.x/api/modules.html#modules_modules_commonjs_modules
 [conditional logic]: https://en.wikipedia.org/wiki/Conditional_(computer_programming)
@@ -1238,6 +1774,10 @@ TODO
 [Jasmine]: https://jasmine.github.io/index.html
 [JavaScript]: https://en.wikipedia.org/wiki/JavaScript
 [Jest]: https://jestjs.io/docs/getting-started
+[Jest expect]: https://jestjs.io/docs/using-matchers
+[Jest setup and teardown]: https://jestjs.io/docs/setup-teardown
+[jest.fn]: https://jestjs.io/docs/jest-object#jestfnimplementation
+[jest.spyOn]: https://jestjs.io/docs/jest-object#jestspyonobject-methodname
 [JSON]: https://en.wikipedia.org/wiki/JSON
 [JSON.parse]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
 [JSON.stringify]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
@@ -1247,7 +1787,11 @@ TODO
 [listening]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#net_event_listening
 [logical OR]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_OR
 [LTS]: https://en.wikipedia.org/wiki/Long-term_support
+[main module]: https://nodejs.org/docs/latest-v14.x/api/modules.html#modules_accessing_the_main_module
+[manual testing]: https://en.wikipedia.org/wiki/Manual_testing
 [Mocha]: https://mochajs.org/
+[mockImplementation]: https://jestjs.io/docs/mock-function-api#mockfnmockimplementationfn
+[mockRestore]: https://jestjs.io/docs/mock-function-api#mockfnmockrestore
 [Node packages]: https://docs.npmjs.com/about-packages-and-modules
 [Node Version Manager for Windows]: https://github.com/coreybutler/nvm-windows
 [Node.js]: https://nodejs.org/dist/latest-v14.x/docs/api/index.html
@@ -1271,15 +1815,18 @@ TODO
 [PostgreSQL]: https://www.postgresql.org/docs/13/index.html
 [PowerShell]: https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_environment_variables?view=powershell-7.1
 [PRIMARY KEY]: https://www.postgresql.org/docs/13/ddl-constraints.html#DDL-CONSTRAINTS-PRIMARY-KEYS
+[Promise]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
 [psql]: https://www.postgresql.org/docs/13/app-psql.html
 [pull request]: https://git-scm.com/docs/git-request-pull
 [React]: https://reactjs.org/
+[refactor]: https://en.wikipedia.org/wiki/Code_refactoring
 [relational database]: https://en.wikipedia.org/wiki/Relational_database
 [req.url]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#http2_request_url
 [response body]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Messages#body_2
 [response header]: https://developer.mozilla.org/en-US/docs/Glossary/Response_header
 [REST]: https://en.wikipedia.org/wiki/Representational_state_transfer
 [RTFM]: https://en.wikipedia.org/wiki/RTFM
+[scope]: https://developer.mozilla.org/en-US/docs/Glossary/Scope
 [semantic versioning]: https://docs.npmjs.com/about-semantic-versioning
 [sequence generator]: https://www.postgresql.org/docs/13/sql-createsequence.html
 [SERIAL]: https://www.postgresql.org/docs/13/datatype-numeric.html#DATATYPE-SERIAL
@@ -1294,8 +1841,10 @@ TODO
 [SQL]: https://en.wikipedia.org/wiki/SQL
 [string]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
 [Terminal Emulator (WebStorm)]: https://www.jetbrains.com/help/webstorm/terminal-emulator.html
+[testing asynchronous code]: https://jestjs.io/docs/asynchronous
 [TEXT]: https://www.postgresql.org/docs/13/datatype-character.html
 [TIMESTAMP]: https://www.postgresql.org/docs/13/datatype-datetime.html
+[toHaveBeenCalledWith]: https://jestjs.io/docs/expect#tohavebeencalledwitharg1-arg2-
 [trigger function]: https://www.postgresql.org/docs/13/plpgsql-trigger.html
 [try...catch]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
 [undefined]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined
