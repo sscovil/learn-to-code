@@ -1417,8 +1417,8 @@ with mock functions, so we can observe how they get used.
 ```
 
 This group of tests is wrapped in another `describe` function that is nested inside the outer `describe`. That means
-the `beforeEach` function in the [scope] of the outer `describe` will be run first, followed by the `beforeEach`
-function in the [scope] of the inner `describe`, then finally the test function will be run.
+the `beforeEach` function in the [scope] of the outer `describe` will be run first, followed by the `beforeEach` in the
+[scope] of the inner `describe`, then finally the test function will be run.
 
 Each test is an [async function] that calls `router` and awaits a response. The [await] operator is necessary because
 we defined our `router` as an [async function] and, as such, it returns a [Promise] right away but does not actually
@@ -1469,7 +1469,7 @@ the other focuses on the `else` code path, when looking back at the `router` log
 ```
 
 The last thing we should touch on is the [Jest expect] function. In most of these tests, we call `expect` with a mock
-function created in the outer `beforeEach` function using [jest.fn]:
+function created in the outer `beforeEach` using [jest.fn]:
 
 ```javascript
   beforeEach(() => {
@@ -1490,9 +1490,14 @@ Our `router` function is a well-defined unit of code that could easily be factor
 module. This is a good idea because, as our application grows over time, this function will grow to handle more routes.
 Also, it would make a lot more sense if `server.js` exported its `server` object.
 
-Create a new file in the `src` directory called `router.js`, then rename `server.test.js` to `router.test.js` and
-create a new empty file called `server.test.js`. When you are done, your tests should all be in `router.test.js` and
-your project folder should look like this:
+Create a new file in the `src` directory called `router.js`, and another called `router.test.js`. Move all the code
+from `server.test.js` into `router.test.js` and update `router.test.js` to import `router` from the correct file:
+
+```javascript
+const router = require('./router')
+```
+
+When you are done, your project folder should look like this:
 
 ```
 learn-to-code/
@@ -1530,12 +1535,6 @@ const router = async (req, res) => {
 }
 
 module.exports = router
-```
-
-We also need to update `router.test.js` to import `router` from the correct file:
-
-```javascript
-const router = require('./router')
 ```
 
 In `server.js`, we can import `router` from `./router.js`. We should also make `server.js` export `server` so we can
