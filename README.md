@@ -1110,8 +1110,8 @@ might not be the best career choice for you. :-)
 
 Let's write some automated tests, so we can deploy our code with confidence (and without those pesky humans).
 
-First, make sure you have installed [Jest] using `npm install -D jest` and add or modify the test script in your
-[package.json] file so that it runs the `jest` command:
+First, make sure you have installed [Jest] using `npm install -D jest` and verify that the test script in your
+[package.json] file runs the `jest` command:
 
 ```json
 {
