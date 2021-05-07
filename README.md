@@ -19,6 +19,7 @@ Using this document, the learner will:
 1. Build a simple [web server] and [REST] endpoint using [Node.js]
 1. Write unit tests using [Jest]
 1. Create a Linux web server using [Docker] & [Docker Compose]
+1. Set up a [reverse proxy server] using [NGINX]
 1. Read the contents of a file using [fs.readFile]
 1. Install and configure [node-postgres] using [NPM]
 1. Create a database migration module using [fs.readFile] and [node-postgres]
@@ -31,6 +32,7 @@ Using this document, the learner will:
 1. Create a user profile web page that requires [authentication] to access
 1. Create a user admin page that requires [authorization] to access
 
+...and more!
 
 ## Before we get started...
 
@@ -171,7 +173,7 @@ services:
       - POSTGRES_PASSWORD=mydbpassword
       - POSTGRES_DB=mydbname
     healthcheck:
-      test: pg_isready -U ${POSTGRES_USER}
+      test: pg_isready -U mydbuser
       interval: 5s
       retries: 10
       timeout: 5s
@@ -372,7 +374,7 @@ Let's install [PGWeb] by adding another [Docker] container to our `docker-compos
 ```yaml
   pgweb:
     image: sosedoff/pgweb
-    restart: always
+    restart: unless-stopped
     environment:
       - DATABASE_URL=postgres://mydbuser:mydbpassword@database:5432/mydbname?sslmode=disable
     ports:
@@ -382,7 +384,7 @@ Let's install [PGWeb] by adding another [Docker] container to our `docker-compos
 ```
 
 Be sure the indentation is correct! Indentation has meaning in [YAML] files. The service name `pgweb` should be at the
-same indentation level as `databse` and one level deeper than `services`.
+same indentation level as `database` and one level deeper than `services`.
 
 Putting it all together, your `docker-compose.yml` file should now look like this:
 
@@ -398,7 +400,7 @@ services:
       - POSTGRES_PASSWORD=mydbpassword
       - POSTGRES_DB=mydbname
     healthcheck:
-      test: pg_isready -U postgres
+      test: pg_isready -U mydbuser
       interval: 5s
       retries: 10
       timeout: 5s
@@ -409,7 +411,7 @@ services:
 
   pgweb:
     image: sosedoff/pgweb
-    restart: always
+    restart: unless-stopped
     environment:
       - DATABASE_URL=postgres://mydbuser:mydbpassword@database:5432/mydbname?sslmode=disable
     ports:
@@ -436,7 +438,7 @@ and other settings in the `database` service configuration:
 
 * `mydbuser` should match the value of the `POSTGRES_USER` environment variable
 * `mydbpassword` should match the value of the `POSTGRES_PASSWORD` environment variable
-* `database` should match the name of container that uses the [postgres:13-alpine] image
+* `database` should match the name of the container that uses the [postgres:13-alpine] image
 * `5432` should match the database container host port
 * `mydbname` should match the value of the `POSTGRES_DB` environment variable
 
@@ -463,7 +465,7 @@ on your local 'host' computer will be forwarded to port `8081` on the virtual we
 
 Now open your favorite web browser and make a request to port `8081` by visiting:
 
-http://localhost:8081/
+http://localhost:8081
 
 If everything is configured correctly, you should see the [PGWeb] interface.
 
@@ -982,10 +984,10 @@ Then we call some [http.ServerResponse] functions: [setHeader], [writeHead], and
   [JSON] format.
 * `res.writeHead` sends a [response header] to the request with a 3-digit HTTP status code, like `200` (Success) or 
   `404` (Not Found).
-* `res.end` send our `body` object, which we convert to a [JSON] string using [JSON.stringify], then signals to the
+* `res.end` sends our `body` object, which we convert to a [JSON] string using [JSON.stringify], then signals to the
   server that all response headers and body have been sent and that the server should consider this request complete.
 
-The `router` function will serve as a request listener, meaning it will be called whenever our [http.Server] receives
+The `router` function will serve as a _request listener_, meaning it will be called whenever our [http.Server] receives
 an HTTP request.
 
 ```javascript
@@ -997,7 +999,7 @@ guessed, creates an [http.Server] object. We assign that object to a constant ca
 
 Our `server` object is an instance of the [http.Server] class, which is a type of [EventEmitter]. This means that it
 will emit events whenever certain things happen. It also means that you can instruct `server` to listen for certain
-events and, when they occur, run a function (called an 'event handler') to perform a desired action.
+events and, when they occur, run a function (called an _event handler_) to perform a desired action.
 
 ```javascript
 server.on('listening', () => {
@@ -1313,7 +1315,7 @@ describe('router', () => {
   let res
 
   beforeEach(() => {
-    req = new http.IncomingMessage(undefined)
+    req = new http.IncomingMessage()
     res = new http.ServerResponse(req)
     res.setHeader = jest.fn()
     res.writeHead = jest.fn()
@@ -1382,7 +1384,7 @@ describe('router', () => {
   let res
 
   beforeEach(() => {
-    req = new http.IncomingMessage(undefined)
+    req = new http.IncomingMessage()
     res = new http.ServerResponse(req)
     res.setHeader = jest.fn()
     res.writeHead = jest.fn()
@@ -1474,7 +1476,7 @@ function created in the outer `beforeEach` using [jest.fn]:
 
 ```javascript
   beforeEach(() => {
-    req = new http.IncomingMessage(undefined)
+    req = new http.IncomingMessage()
     res = new http.ServerResponse(req)
     res.setHeader = jest.fn()
     res.writeHead = jest.fn()
@@ -1639,57 +1641,62 @@ Take some time to learn more about [testing asynchronous code]. We will be writi
 TODO
 
 
-## 13. Read the contents of a file using [fs.readFile]
+## 13. Set up a [reverse proxy server] using [NGINX]
 
 TODO
 
 
-## 14. Install and configure [node-postgres] using [NPM]
+## 14. Read the contents of a file using [fs.readFile]
 
 TODO
 
 
-## 15. Create a database migration module using [fs.readFile] and [node-postgres]
+## 15. Install and configure [node-postgres] using [NPM]
 
 TODO
 
 
-## 16. Create a cryptographic one-way [hash] using [crypto.createHash]
+## 16. Create a database migration module using [fs.readFile] and [node-postgres]
 
 TODO
 
 
-## 17. Create a Command Line Interface ([CLI]) using [Node.js]
+## 17. Create a cryptographic one-way [hash] using [crypto.createHash]
 
 TODO
 
 
-## 18. Create a Data Access Object ([DAO]) for performing [CRUD] operations
+## 18. Create a Command Line Interface ([CLI]) using [Node.js]
 
 TODO
 
 
-## 19. Create [REST] endpoints for [user registration] and [authentication]
+## 19. Create a Data Access Object ([DAO]) for performing [CRUD] operations
 
 TODO
 
 
-## 20. Implement a [session management] strategy using an [HTTP cookie] header
+## 20. Create [REST] endpoints for [user registration] and [authentication]
 
 TODO
 
 
-## 21. Create a user login web page using [HTML] and [CSS]
+## 21. Implement a [session management] strategy using an [HTTP cookie] header
 
 TODO
 
 
-## 22. Create a user profile web page that requires [authentication] to access
+## 22. Create a user login web page using [HTML] and [CSS]
 
 TODO
 
 
-## 23. Create a user admin page that requires [authorization] to access
+## 23. Create a user profile web page that requires [authentication] to access
+
+TODO
+
+
+## 24. Create a user admin page that requires [authorization] to access
 
 TODO
 
@@ -1792,6 +1799,7 @@ TODO
 [Mocha]: https://mochajs.org/
 [mockImplementation]: https://jestjs.io/docs/mock-function-api#mockfnmockimplementationfn
 [mockRestore]: https://jestjs.io/docs/mock-function-api#mockfnmockrestore
+[NGINX]: https://nginx.org/en/docs/beginners_guide.html
 [Node packages]: https://docs.npmjs.com/about-packages-and-modules
 [Node Version Manager for Windows]: https://github.com/coreybutler/nvm-windows
 [Node.js]: https://nodejs.org/dist/latest-v14.x/docs/api/index.html
@@ -1825,6 +1833,7 @@ TODO
 [response body]: https://developer.mozilla.org/en-US/docs/Web/HTTP/Messages#body_2
 [response header]: https://developer.mozilla.org/en-US/docs/Glossary/Response_header
 [REST]: https://en.wikipedia.org/wiki/Representational_state_transfer
+[reverse proxy server]: https://www.nginx.com/resources/glossary/reverse-proxy-vs-load-balancer/
 [RTFM]: https://en.wikipedia.org/wiki/RTFM
 [scope]: https://developer.mozilla.org/en-US/docs/Glossary/Scope
 [semantic versioning]: https://docs.npmjs.com/about-semantic-versioning
