@@ -1305,6 +1305,8 @@ how the software is intended to work.
 
 Let's add some more tests. We can go through them in detail and learn a lot along the way.
 
+Open `server.test.js` and replace what is in there with the following code, which includes the test we already wrote:
+
 ```javascript
 const http = require('http')
 
