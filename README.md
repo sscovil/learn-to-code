@@ -2018,7 +2018,7 @@ create a link to it. In this case, we are mounting the `/home/node/app` director
 current directory on our host. By doing so, any files we add, remove, or change in our project folder will also get
 added, removed, or changed inside our [virtual machine].
 
-![Inception GIF](http://gph.is/2c87Jqc)
+![Inception GIF](https://media.giphy.com/media/7pHTiZYbAoq40/giphy.gif)
 
 Now we can start all of our containers using [Docker Compose], but first let's clean up our existing containers. This
 way, we can start fresh and avoid any port conflicts due to multiple containers attempting to grab the same port.
