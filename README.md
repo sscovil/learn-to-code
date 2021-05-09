@@ -161,7 +161,7 @@ copy of it on your computer, start your [IDE] and open the `learn-to-code` folde
 
 Start by creating a new file called `docker-compose.yml` and, in that file, copy/paste the following:
 
-```yml
+```yaml
 version: "3.7"
 
 services:
@@ -179,8 +179,6 @@ services:
       timeout: 5s
     ports:
       - "5432:5432"
-    volumes:
-      - .:/data/db
 ```
 
 This is a [Docker Compose] configuration file that uses a format called [YAML] and describes a [virtual machine] we
@@ -406,8 +404,6 @@ services:
       timeout: 5s
     ports:
       - "5432:5432"
-    volumes:
-      - .:/data/db
 
   pgweb:
     image: sosedoff/pgweb
@@ -862,6 +858,7 @@ learn-to-code/
 ├─ src/
 │  └─ server.js
 ├─ .gitignore
+├─ docker-compose.yml
 ├─ package.json
 ├─ package-lock.json
 └─ README.md
@@ -1139,6 +1136,7 @@ learn-to-code/
 │  ├─ server.js
 │  └─ server.test.js
 ├─ .gitignore
+├─ docker-compose.yml
 ├─ package.json
 ├─ package-lock.json
 └─ README.md
@@ -1513,6 +1511,7 @@ learn-to-code/
 │  ├─ server.js
 │  └─ server.test.js
 ├─ .gitignore
+├─ docker-compose.yml
 ├─ package.json
 ├─ package-lock.json
 └─ README.md
@@ -1640,7 +1639,577 @@ Take some time to learn more about [testing asynchronous code]. We will be writi
 
 ## 12. Create a Linux web server using [Docker] & [Docker Compose]
 
-TODO
+At this point, we have a [Node.js] web server with a working (and well-tested) ping endpoint. Before writing unit tests
+with [Jest], we manually tested the server by running:
+
+```shell
+node src/server.js
+```
+
+...and visiting http://localhost:8080/ping in a web browser.
+
+When we did this, our web server was running in a [development environment] using whatever operating system we have
+installed on our computer. However, when we deploy our code to a [production environment] we may want to use a different
+OS. [Alpine Linux] is popular because it is lightweight, secure, and [open source].
+
+What we want is for our [development environment] to match our [production environment], so let's create a [Docker]
+image that uses [Alpine Linux] as an OS and has [Node.js] already installed on it. Let's also configure the image to
+include our application code and, on startup, start the web server listening on port `8080`.
+
+To do this, we need a [Dockerfile]. Create a new file called `Dockerfile` (without any [filename extension]) so that
+your project folder looks like this:
+
+```
+learn-to-code/
+├─ node_modules/
+├─ src/
+│  ├─ router.js
+│  ├─ router.test.js
+│  ├─ server.js
+│  └─ server.test.js
+├─ .gitignore
+├─ Dockerfile
+├─ docker-compose.yml
+├─ package.json
+├─ package-lock.json
+└─ README.md
+```
+
+### Creating a Dockerfile
+
+Open `Dockerfile` in your [IDE] and paste in the following code:
+
+```dockerfile
+# syntax=docker/dockerfile:1
+FROM node:14-alpine
+WORKDIR /home/node/app
+COPY . .
+RUN npm install
+RUN chown -R node:node .
+EXPOSE 8080
+CMD [ "npm", "start" ]
+```
+
+Let's go through this line-by-line to understand what is happening here.
+
+```dockerfile
+# syntax=docker/dockerfile:1
+```
+
+The first line is a [comment], indicated by the `#` at the beginning of the line. All programming languages have some
+sort of [comment] syntax. In [JavaScript], comments are denoted by `//` on a single line, or between `/*` and `*/` when
+they break across multiple lines. [SQL] uses `--` for inline comments, or `/*` and `*/` for multiline. [Shell] scripts
+and [Dockerfile] use `#`.
+
+This particular comment is actually called a [parser directive] that tells [Docker] which version of its syntax is being
+used. If the developers who make [Docker] decide to completely change the way a [Dockerfile] is written, they would need
+to support the old version of the syntax for some amount of time so other developers could upgrade their code. If and
+when that happens, you will need to modify this line in order to use new features of the latest version.
+
+```dockerfile
+FROM node:14-alpine
+```
+
+The `FROM` instruction tells [Docker] to use [node:14-alpine] as a base image, which gets us most of the way there by
+providing a snapshot of [Alpine Linux] with [Node.js] v14.x already installed on it. How convenient!
+
+```dockerfile
+WORKDIR /home/node/app
+```
+
+The `WORKDIR` instruction sets the working directory for any `RUN`, `CMD`, `ENTRYPOINT`, `COPY` and `ADD` instructions
+that follow it in the [Dockerfile]. If the directory `/home/node/app` doesn't already exist on this image, it will be
+created automatically.
+
+```dockerfile
+COPY . .
+```
+
+The `COPY` instruction is used to copy everything from the project folder on the host machine into `/home/node/app` on
+the virtual [Alpine Linux] container. It takes two arguments, `COPY <source> <destination>`, where `<source>` is the
+local host directory and `<destination>` is the container directory.
+
+When you see the symbol `.` being used in the context of file systems, it means 'current directory'. Likewise, `..`
+means 'parent directory'. From your project folder, if you run `cd src` in the terminal you will change directory so
+that the current working directory is `src`. If you then run `cd ..`, you will change back to the parent directory,
+which is your project folder. If you run `cd .` nothing will happen because you are changing to the current directory.
+
+```dockerfile
+RUN npm install
+```
+
+The `RUN` instruction is used here to install the [dependencies] defined in our [package.json] file via `npm install`.
+`RUN` commands are run from inside the container, as if you were using the [Alpine Linux] terminal.
+
+```dockerfile
+RUN chown -R node:node .
+```
+
+The `RUN` instruction is then used to change the owner of the current working directory using [chown] with the `-R`
+flag, which applies the change recursively to all subdirectories. This ensures that our [Node.js] application will have
+full access to all the files and folders in `/home/node/app`.
+
+```dockerfile
+EXPOSE 8080
+```
+
+The `EXPOSE` instruction informs Docker that the container will listen on port `8080` at runtime.
+
+```dockerfile
+CMD [ "npm", "start" ]
+```
+
+The `CMD` instruction provides a default command to run when a container is started. The syntax is a little different
+here; it looks like a [JSON] array with the different parts of a command you would run in the terminal. Essentially,
+that's what it is. When the container starts, it will run `npm start` which is a script we need to add to [package.json]
+like we did for `npm test`.
+
+Now, open your [package.json] file and add a `start` script like this:
+
+```json
+{
+  "name": "learn-to-code",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^26.6.3"
+  }
+}
+```
+
+If you run `npm start` from your project folder, you will see that your server starts running from your local machine.
+Hit `CTRL+C` to stop it.
+
+### Building a Docker image
+
+Now we want to build a [Docker] image using our [Dockerfile]. To do so, run [docker build] like this:
+
+```shell
+docker build . -t server
+```
+
+The first parameter passed to [docker build] is `.`, which tells it to use the [Dockerfile] in the current directory
+(your project folder).
+
+The second parameter, `-t server`, assigns the name `server` to our image. You can call it whatever you want, but we
+will be referencing it later so try and remember what you called it.
+
+You should see output like this:
+
+```shell
+[+] Building 10.0s (12/12) FINISHED                                                                                                                                                                                                                                                                                     
+ => [internal] load build definition from Dockerfile                                                                                                                                                                                                                                                               0.0s
+ => => transferring dockerfile: 37B                                                                                                                                                                                                                                                                                0.0s
+ => [internal] load .dockerignore                                                                                                                                                                                                                                                                                  0.0s
+ => => transferring context: 2B                                                                                                                                                                                                                                                                                    0.0s
+ => resolve image config for docker.io/docker/dockerfile:1                                                                                                                                                                                                                                                         0.3s
+ => CACHED docker-image://docker.io/docker/dockerfile:1@sha256:e2a8561e419ab1ba6b2fe6cbdf49fd92b95912df1cf7d313c3e2230a333fdbcc                                                                                                                                                                                    0.0s
+ => [internal] load metadata for docker.io/library/node:14-alpine                                                                                                                                                                                                                                                  0.3s
+ => [1/5] FROM docker.io/library/node:14-alpine@sha256:ed51af876dd7932ce5c1e3b16c2e83a3f58419d824e366de1f7b00f40c848c40                                                                                                                                                                                            0.0s
+ => [internal] load build context                                                                                                                                                                                                                                                                                  0.2s
+ => => transferring context: 559.96kB                                                                                                                                                                                                                                                                              0.2s
+ => CACHED [2/5] WORKDIR /home/node/app                                                                                                                                                                                                                                                                            0.0s
+ => [3/5] COPY . .                                                                                                                                                                                                                                                                                                 0.5s
+ => [4/5] RUN npm install                                                                                                                                                                                                                                                                                          2.9s
+ => [5/5] RUN chown -R node:node .                                                                                                                                                                                                                                                                                 4.9s
+ => exporting to image                                                                                                                                                                                                                                                                                             0.5s
+ => => exporting layers                                                                                                                                                                                                                                                                                            0.5s
+ => => writing image sha256:32c7e5e41c0d021cb198f2f1e0cd5e592c2e6a4783229e416162c6cd285e1686                                                                                                                                                                                                                       0.0s
+ => => naming to docker.io/library/server  
+```
+
+To see a list of all the [Docker] images you have built, use:
+
+```shell
+docker images ls
+```
+
+You should then see something like this:
+
+```shell
+REPOSITORY       TAG         IMAGE ID       CREATED             SIZE
+server           latest      32c7e5e41c0d   3 minutes ago       198MB
+postgres         13-alpine   258269eae836   3 weeks ago         157MB
+sosedoff/pgweb   latest      5b5bb168f883   6 months ago        38.6MB
+```
+
+Notice that we still have images for [PostgreSQL] and [PGWeb] that were created using [docker-compose] earlier. We will
+come back to that in a minute.
+
+### Creating a Docker container
+
+To create and start a container using our `server` image, use the [docker run] command with the following parameters:
+
+```shell
+docker run --name=server_1 --hostname=server -e APP_HOST=server -p 8080:8080 -d server
+```
+
+The first parameter, `--name=server_1`, gives the container itself an alias of `server_1`. Again, you can call it
+whatever you want. This name will come in handy when you want to run other commands like [docker stop], [docker start],
+and [docker rm] because you will have to specify which container you are targeting.
+
+The second parameter, `--hostname=server`, registers the alias `server` to the container's [IP address]. This is similar
+to `localhost`, which is an alias for your host machine's IP.
+
+The third parameter, `-e APP_HOST=server`, sets the `APP_HOST` [environment variable] to `server`, which is the
+hostname alias we just assigned to the container's [IP address]. You may recall that our [Node.js] app uses
+`process.env.APP_HOST` (if it is set) and passes it to [http.createServer].
+
+The fourth parameter, `-p 8080:8080`, creates a port mapping between the host and container so that requests to
+http://localhost:8080 get forwarded to http://server:8080. This is the same as the [docker-compose ports config] we
+used earlier for our [PostgreSQL] and [PGWeb] containers in `docker-compose.yml`.
+
+The fifth parameter, `-d`, runs the container in 'detached mode', which means it runs in the background. We used this
+same flag when running `docker-compose up -d`.
+
+Finally, we specify `server` at the end, which tells [docker run] to use the image we created using [docker build],
+which we named `server`. If you named your image something else, use that name instead.
+
+After running the [docker run] command above, you should see a long string of letters and numbers like this:
+
+```shell
+a2ab91f66648a3daf39015e50a123c2e1578f1e9b014a5304c6a12a1e33698ab
+```
+
+This is a unique identifier for the container you created, so yours will not be the same as mine. You can list all of
+your containers by running:
+
+```shell
+docker container ls
+```
+
+...which will output something like this:
+
+```shell
+CONTAINER ID   IMAGE     COMMAND                  CREATED         STATUS         PORTS                    NAMES
+a2ab91f66648   server    "docker-entrypoint.s…"   3 minutes ago   Up 3 minutes   0.0.0.0:8080->8080/tcp   server_1
+```
+
+Your list of containers might also show the [PostgreSQL] and [PGWeb] containers, if you still have them running.
+
+Notice the `CONTAINER ID` column above has an abbreviated version of the long container ID that was output when you ran
+[docker run]. There are three ways you can refer to a container:
+
+1. [UUID] long identifier (ex: `a2ab91f66648a3daf39015e50a123c2e1578f1e9b014a5304c6a12a1e33698ab`)
+1. [UUID] short identifier (ex: `a2ab91f66648`)
+1. Name given by `--name` parameter (ex: `server_1`)
+
+To stop your container, run [docker stop]:
+
+```shell
+docker stop server_1
+```
+
+To start your container again, run [docker start]:
+
+```shell
+docker start server_1
+```
+
+To remove (i.e. delete) the container, run [docker rm]:
+
+```shell
+docker rm server_1
+```
+
+You can always create a new container using a [Docker] image, so it's okay to delete containers. You can also delete
+your images, because you have a [Dockerfile] that can be used to rebuild your `server` image, and the other images are
+hosted on [DockerHub], which is kind of like [GitHub] for [Docker] images.
+
+### Docker vs. Docker Compose
+
+By now you may be wondering, "What's the difference between Docker and Docker Compose?"
+
+[Docker Compose] is a tool for defining and running multi-container [Docker] applications. With Compose, you use a
+[YAML] file to configure your application’s services. Then, with a single command, you create and start all the
+services from your configuration.
+
+Open `docker-compose.yml` and add the following service to it:
+
+```yaml
+  server:
+    build: .
+    restart: unless-stopped
+    environment:
+      - APP_HOST=server
+      - APP_PORT=8080
+      - NODE_ENV=development
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider server:8080/ping || exit 1
+      interval: 30s
+      retries: 10
+      timeout: 5s
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/home/node/app
+```
+
+Again, be sure the indentation is correct. Your file should now look like this:
+
+```yaml
+version: "3.7"
+
+services:
+  database:
+    image: postgres:13-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=mydbuser
+      - POSTGRES_PASSWORD=mydbpassword
+      - POSTGRES_DB=mydbname
+    healthcheck:
+      test: pg_isready -U mydbuser
+      interval: 5s
+      retries: 10
+      timeout: 5s
+    ports:
+      - "5432:5432"
+
+  pgweb:
+    image: sosedoff/pgweb
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgres://mydbuser:mydbpassword@database:5432/mydbname?sslmode=disable
+    ports:
+      - "8081:8081"
+
+  server:
+    build: .
+    restart: unless-stopped
+    environment:
+      - APP_HOST=server
+      - APP_PORT=8080
+      - NODE_ENV=development
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider server:8080/ping || exit 1
+      interval: 30s
+      retries: 10
+      timeout: 5s
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/home/node/app
+```
+
+When we ran [docker build], we gave it several parameters like `--name=server_1` and `--hostname=server` to configure
+it. Here, we are putting those configurations (and some new ones) in a [YAML] file, making them much easier to read and
+reason about.
+
+Notice that this new service configuration does not specify an `image` like the others. That's because we are not
+hosting our `server` image on [DockerHub] or some other remote server. Instead, we are using `build: .` to build the
+image using the [Dockerfile] in the current directory.
+
+The [docker-compose healthcheck config] is used to set a command that gets run from inside the container on a regular
+`interval` (every 30 seconds in this case) to determine if the container is healthy. Since we tell the container which
+command to run, we determine what the term "healthy" means for any given service. In this case, we are calling the ping
+endpoint we created in our [Node.js] app to see if it responds successfully and, if so, that means the server is up and
+running and accepting requests. Each call to the ping endpoint will `timeout`, or stop waiting, after 5 seconds if it
+does not get a response. It will then try again, making up to 10 `retries`, until it either gets a successful response
+or stops trying and reports the container as being "unhealthy".
+
+The [docker-compose volumes config] is used to create a volume mount. A volume is a place where files are stored, like
+your hard drive. The `server` container has some amount of storage from your hard drive allocated to it when it gets
+created, and that piece of your hard drive essentially becomes the container's hard drive. When you mount a volume, you
+create a link to it. In this case, we are mounting the `/home/node/app` directory in our container to `.`, which is the
+current directory on our host. By doing so, any files we add, remove, or change in our project folder will also get
+added, removed, or changed inside our [virtual machine].
+
+![Inception GIF](http://gph.is/2c87Jqc)
+
+Now we can start all of our containers using [Docker Compose], but first let's clean up our existing containers. This
+way, we can start fresh and avoid any port conflicts due to multiple containers attempting to grab the same port.
+
+From the terminal, run:
+
+```shell
+docker kill $(docker ps -q)
+```
+
+This command forcibly stop all running containers, using `docker ps -q` to generate a list of container IDs.
+
+Next, remove all containers using:
+
+```shell
+docker rm $(docker ps -a -q)
+```
+
+It's not necessary now, but you could also remove all images by running:
+
+```shell
+docker rmi $(docker images -q)
+```
+
+Occasionally it's a good idea to run these commands just to free up some space on your hard drive. Every time you build
+a new version of your `server` image, for example, it will remove the name from the old image but will not delete the
+file. You can use [docker image prune] to remove just the old, unused images.
+
+Now let's bring up the whole stack by running:
+
+```shell
+docker-compose up -d
+```
+
+If you removed all images, it will need to pull [postgres:13-alpine] and [sosedoff/pgweb] again from [DockerHub], which
+can take a minute. It will also need to rebuild our `server` image, which uses [node:14-alpine], so that image will get
+pulled again from [DockerHub].
+
+You should see output like this:
+
+```shell
+Pulling database (postgres:13-alpine)...
+13-alpine: Pulling from library/postgres
+595b0fe564bb: Pull complete
+343d254f5bda: Pull complete
+94173ef17c94: Pull complete
+b1732827bd55: Pull complete
+0bacf9b4d489: Pull complete
+592d5197fc17: Pull complete
+78450ea37007: Pull complete
+1f8cd65c72c6: Pull complete
+Digest: sha256:c4c7a1585974706b5f72b8ab595e47399b23b2e03d93bbf75c1b0904be1803dc
+Status: Downloaded newer image for postgres:13-alpine
+Pulling pgweb (sosedoff/pgweb:)...
+latest: Pulling from sosedoff/pgweb
+9d48c3bd43c5: Pull complete
+19c74ff0265e: Pull complete
+Digest: sha256:85e0132e0cce703a28592bb65e8355cc240d5f1cb4c4f57e2487fd3d5ce1120c
+Status: Downloaded newer image for sosedoff/pgweb:latest
+Building server
+[+] Building 13.8s (14/14) FINISHED                                                                                                                                                                                                                                                                                     
+ => [internal] load build definition from Dockerfile                                                                                                                                                                                                                                                               0.0s
+ => => transferring dockerfile: 90B                                                                                                                                                                                                                                                                                0.0s
+ => [internal] load .dockerignore                                                                                                                                                                                                                                                                                  0.0s
+ => => transferring context: 2B                                                                                                                                                                                                                                                                                    0.0s
+ => resolve image config for docker.io/docker/dockerfile:1                                                                                                                                                                                                                                                         0.7s
+ => [auth] docker/dockerfile:pull token for registry-1.docker.io                                                                                                                                                                                                                                                   0.0s
+ => CACHED docker-image://docker.io/docker/dockerfile:1@sha256:e2a8561e419ab1ba6b2fe6cbdf49fd92b95912df1cf7d313c3e2230a333fdbcc                                                                                                                                                                                    0.0s
+ => [internal] load metadata for docker.io/library/node:14-alpine                                                                                                                                                                                                                                                  0.4s
+ => [auth] library/node:pull token for registry-1.docker.io                                                                                                                                                                                                                                                        0.0s
+ => [internal] load build context                                                                                                                                                                                                                                                                                  0.4s
+ => => transferring context: 1.12MB                                                                                                                                                                                                                                                                                0.4s
+ => [1/5] FROM docker.io/library/node:14-alpine@sha256:ed51af876dd7932ce5c1e3b16c2e83a3f58419d824e366de1f7b00f40c848c40                                                                                                                                                                                            0.0s
+ => CACHED [2/5] WORKDIR /home/node/app                                                                                                                                                                                                                                                                            0.0s
+ => [3/5] COPY . .                                                                                                                                                                                                                                                                                                 1.2s
+ => [4/5] RUN npm install                                                                                                                                                                                                                                                                                          2.8s
+ => [5/5] RUN chown -R node:node .                                                                                                                                                                                                                                                                                 6.9s
+ => exporting to image                                                                                                                                                                                                                                                                                             0.8s
+ => => exporting layers                                                                                                                                                                                                                                                                                            0.8s
+ => => writing image sha256:23ae89bb28afd9701cbb0358296b74d7a6461430d0743e7106655866ba7c9643                                                                                                                                                                                                                       0.0s
+ => => naming to docker.io/library/learn-to-code_server                                                                                                                                                                                                                                                            0.0s
+Successfully built 23ae89bb28afd9701cbb0358296b74d7a6461430d0743e7106655866ba7c9643
+WARNING: Image for service server was built because it did not already exist. To rebuild this image you must use `docker-compose build` or `docker-compose up --build`.
+Creating learn-to-code_database_1 ... done
+Creating learn-to-code_server_1   ... done
+Creating learn-to-code_pgweb_1    ... done
+```
+
+Notice that `WARNING` near the end:
+
+```shell
+WARNING: Image for service server was built because it did not already exist. To rebuild this image you must use `docker-compose build` or `docker-compose up --build`.
+```
+
+That just means the next time you run `docker-compose up` it will not automatically rebuild the `server` image. It will
+simply use the image that has already been built. Fortunately, you won't need to rebuild your image very often thanks
+to the [docker-compose volumes config] we used.
+
+Whenever you make a code change, just restart the [Node.js] server by running:
+
+```shell
+docker-compose restart server
+```
+
+### Automatically detecting code changes
+
+Software developers like to automate things. For this reason, some [wonderful genius] has already created a utility
+called [Nodemon] that can monitor your [Node.js] application for code changes and automatically restart it. By using
+this, we can focus on writing code without worrying about constantly restarting our server.
+
+From the project folder, run:
+
+```shell
+npm install -D nodemon
+```
+
+Then, open `docker-compose.yml` and modify the `server` service configuration to add the following just below the
+`build` instruction:
+
+```yaml
+    command: [ "node_modules/.bin/nodemon", "src/server.js" ]
+```
+
+This will override the `CMD` instruction at the bottom of our [Dockerfile], so instead of running `npm start` it will
+run `nodemon` using an executable file that got installed in the `node_modules/bin` directory when we ran `npm install`
+a moment ago.
+
+The `server` service configuration in `docker-compose.yml` should now look like this:
+
+```yaml
+  server:
+    build: .
+    command: [ "node_modules/.bin/nodemon", "src/server.js" ]
+    restart: unless-stopped
+    environment:
+      - APP_HOST=server
+      - APP_PORT=8080
+      - NODE_ENV=development
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider server:8080/ping || exit 1
+      interval: 30s
+      retries: 10
+      timeout: 5s
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/home/node/app
+```
+
+Now destroy your running containers and bring them back up using:
+
+```shell
+docker-compose down && docker-compose up -d
+```
+
+You can confirm that [Nodemon] is running by checking the `server` logs:
+
+```shell
+docker-compose logs server
+```
+
+You should see the following output:
+
+```shell
+Attaching to learn-to-code_server_1
+server_1    | [nodemon] 2.0.7
+server_1    | [nodemon] to restart at any time, enter `rs`
+server_1    | [nodemon] watching path(s): *.*
+server_1    | [nodemon] watching extensions: js,mjs,json
+server_1    | [nodemon] starting `node src/server.js`
+server_1    | Server listening at https://server:8080
+```
+
+By default, [Nodemon] watches for changes to any file with a [filename extension] of `.js`, `.mjs`, or `.json`.
+
+Go ahead and try it out. Visit http://localhost:8080/ping in your browser, then make a change to `src/router.js` like
+this:
+
+```js
+    if ('/ping' === req.url) {
+        body = {status: 'healthy', foo: 'bar'}
+        code = 200
+    } else {
+        body = {error: 'Resource not found'}
+        code = 404
+    }
+```
+
+...and refresh the page in your browser. You should see the [JSON] response object now contains `foo: "bar"`.
+
+Just be sure to remove that code change, or it will cause one of your tests to fail when you run `npm test`!
 
 
 ## 13. Set up a [reverse proxy server] using [NGINX]
@@ -1713,9 +2282,11 @@ TODO
 [BitBucket]: https://bitbucket.org/product
 [bugs]: https://en.wikipedia.org/wiki/Software_bug
 [changelog]: https://en.wikipedia.org/wiki/Changelog
+[chown]: https://en.wikipedia.org/wiki/Chown
 [CLI]: https://en.wikipedia.org/wiki/Command-line_interface
 [clone your repo]: https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository
 [code coverage]: https://en.wikipedia.org/wiki/Code_coverage
+[comment]: https://en.wikipedia.org/wiki/Comment_(computer_programming)
 [CommonJS]: https://en.wikipedia.org/wiki/CommonJS
 [CommonJS modules]: https://nodejs.org/docs/latest-v14.x/api/modules.html#modules_modules_commonjs_modules
 [conditional logic]: https://en.wikipedia.org/wiki/Conditional_(computer_programming)
@@ -1733,14 +2304,24 @@ TODO
 [DEFAULT]: https://www.postgresql.org/docs/13/ddl-default.html
 [DELETE]: https://www.postgresql.org/docs/13/sql-delete.html
 [dependencies]: https://docs.npmjs.com/cli/v6/configuring-npm/package-json#dependencies
+[development environment]: https://en.wikipedia.org/wiki/Deployment_environment#Development
 [Docker]: https://www.docker.com/get-started
+[Dockerfile]: https://docs.docker.com/engine/reference/builder/
+[DockerHub]: https://hub.docker.com/
+[Docker Compose]: https://docs.docker.com/compose/
+[docker build]: https://docs.docker.com/engine/reference/commandline/build/
+[docker image prune]: https://docs.docker.com/engine/reference/commandline/image_prune/
+[docker rm]: https://docs.docker.com/engine/reference/commandline/rm/
+[docker run]: https://docs.docker.com/engine/reference/commandline/run/
+[docker start]: https://docs.docker.com/engine/reference/commandline/start/
+[docker stop]: https://docs.docker.com/engine/reference/commandline/stop/
 [docker-compose]: https://docs.docker.com/compose/reference/
 [docker-compose environment config]: https://docs.docker.com/compose/compose-file/compose-file-v3/#environment
+[docker-compose healthcheck config]: https://docs.docker.com/compose/compose-file/compose-file-v3/#healthcheck
 [docker-compose ports config]: https://docs.docker.com/compose/compose-file/compose-file-v3/#ports
+[docker-compose volumes config]: https://docs.docker.com/compose/compose-file/compose-file-v3/#volumes
 [docker-compose up]: https://docs.docker.com/compose/reference/up/
-[Docker Compose]: https://docs.docker.com/compose/
 [Docker Desktop]: https://www.docker.com/products/docker-desktop
-[Dockerfile]: https://docs.docker.com/engine/reference/builder/
 [ECMAScript]: https://en.wikipedia.org/wiki/ECMAScript
 [ECMAScript modules]: https://nodejs.org/docs/latest-v14.x/api/all.html#esm_modules_ecmascript_modules
 [enable coding assistance for Node.js]: https://www.jetbrains.com/help/webstorm/configuring-javascript-libraries.html#ws_js_libraries_node_js_core
@@ -1748,8 +2329,9 @@ TODO
 [environment variable]: https://en.wikipedia.org/wiki/Environment_variable
 [EventEmitter]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#events_class_eventemitter
 [export]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export
-[fs.readFile]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#fs_fs_readfile_path_options_callback
+[filename extension]: https://en.wikipedia.org/wiki/Filename_extension
 [fork this repo]: https://docs.github.com/en/github/getting-started-with-github/fork-a-repo
+[fs.readFile]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#fs_fs_readfile_path_options_callback
 [functions]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Functions
 [Git]: https://git-scm.com/
 [git add]: https://git-scm.com/docs/git-add
@@ -1780,6 +2362,7 @@ TODO
 [INTEGER]: https://www.postgresql.org/docs/13/datatype-numeric.html#DATATYPE-INT
 [Integrated Terminal (VSCode)]: https://code.visualstudio.com/docs/editor/integrated-terminal
 [IntelliJ]: https://www.jetbrains.com/idea/
+[IP address]: https://en.wikipedia.org/wiki/IP_address
 [Jasmine]: https://jasmine.github.io/index.html
 [JavaScript]: https://en.wikipedia.org/wiki/JavaScript
 [Jest]: https://jestjs.io/docs/getting-started
@@ -1804,10 +2387,12 @@ TODO
 [NGINX]: https://nginx.org/en/docs/beginners_guide.html
 [Node packages]: https://docs.npmjs.com/about-packages-and-modules
 [Node Version Manager for Windows]: https://github.com/coreybutler/nvm-windows
+[Nodemon]: https://nodemon.io/
 [Node.js]: https://nodejs.org/dist/latest-v14.x/docs/api/index.html
 [Node.js assert]: https://nodejs.org/docs/latest-v14.x/api/all.html#assert_assert
 [Node.js changelog]: https://github.com/nodejs/node/blob/master/CHANGELOG.md
 [Node.js http]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#http_http
+[node:14-alpine]: https://github.com/nodejs/docker-node
 [node-postgres]: https://node-postgres.com/
 [node_modules]: https://docs.npmjs.com/cli/v6/configuring-npm/folders#node-modules
 [NOT NULL]: https://www.postgresql.org/docs/13/ddl-constraints.html#id-1.5.4.6.6
@@ -1820,15 +2405,18 @@ TODO
 [objects]: https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/Basics
 [open source]: https://en.wikipedia.org/wiki/Open-source_software
 [package.json]: https://docs.npmjs.com/cli/v6/configuring-npm/package-json
+[parser directive]: https://docs.docker.com/engine/reference/builder/#parser-directives
 [PGWeb]: https://sosedoff.github.io/pgweb/
 [postgres:13-alpine]: https://hub.docker.com/_/postgres
 [PostgreSQL]: https://www.postgresql.org/docs/13/index.html
 [PowerShell]: https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_environment_variables?view=powershell-7.1
 [PRIMARY KEY]: https://www.postgresql.org/docs/13/ddl-constraints.html#DDL-CONSTRAINTS-PRIMARY-KEYS
+[production environment]: https://en.wikipedia.org/wiki/Deployment_environment#Production
 [Promise]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
 [psql]: https://www.postgresql.org/docs/13/app-psql.html
 [pull request]: https://git-scm.com/docs/git-request-pull
 [React]: https://reactjs.org/
+[recursion]: https://en.wikipedia.org/wiki/Recursion_(computer_science)
 [refactor]: https://en.wikipedia.org/wiki/Code_refactoring
 [relational database]: https://en.wikipedia.org/wiki/Relational_database
 [req.url]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#http2_request_url
@@ -1850,6 +2438,7 @@ TODO
 [sosedoff/pgweb]: https://hub.docker.com/r/sosedoff/pgweb/
 [source code]: https://en.wikipedia.org/wiki/Source_code
 [SQL]: https://en.wikipedia.org/wiki/SQL
+[staging environment]: https://en.wikipedia.org/wiki/Deployment_environment#Staging
 [string]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
 [Terminal Emulator (WebStorm)]: https://www.jetbrains.com/help/webstorm/terminal-emulator.html
 [testing asynchronous code]: https://jestjs.io/docs/asynchronous
@@ -1871,5 +2460,6 @@ TODO
 [web server]: https://en.wikipedia.org/wiki/Web_server
 [WebStorm]: https://www.jetbrains.com/webstorm/
 [WebStorm: Running and debugging Node.js]: https://www.jetbrains.com/help/webstorm/running-and-debugging-node-js.html
+[wonderful genius]: https://twitter.com/rem
 [writeHead]: https://nodejs.org/dist/latest-v14.x/docs/api/all.html#http_response_writehead_statuscode_statusmessage_headers
 [YAML]: https://en.wikipedia.org/wiki/YAML
